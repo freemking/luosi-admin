@@ -1,0 +1,50 @@
+name: 部署 Go 项目到服务器
+
+# 触发条件：push 到 main 分支自动部署
+on:
+  push:
+    branches: [ main ]
+  # 支持手动触发部署
+  workflow_dispatch:
+
+# 部署任务
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 2. 安装 Go 环境（修改为你的 Go 版本）
+      - name: 安装 Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'  # 改成你的项目 Go 版本
+
+      # 3. 编译 Go 二进制（关键：跨平台编译 Linux 版本）
+      - name: 编译 Go 项目
+        run: |
+          # 禁用CGO + 编译Linux amd64版本
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app main.go
+          # 说明：-o app 是编译后的二进制名，main.go 是你的入口文件
+
+      # 4. 配置 SSH 免密登录
+      - name: 配置 SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      # 5. 上传编译好的二进制到服务器
+      - name: 上传文件到服务器
+        run: |
+          # 严格主机密钥检查关闭，避免连接失败
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "mkdir -p ${{ secrets.DEPLOY_DIR }}"
+           # 1. 创建部署目录（不存在则创建）
+          $SSH ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p ${{ secrets.DEPLOY_DIR }}"
+                    
+          # 2. 上传Go二进制文件
+          $SCP app ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_DIR }}/
+          
+          # 3. 授权并重启服务
+          $SSH ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd ${{ secrets.DEPLOY_DIR }} && chmod +x app && systemctl restart go-luosi-admin"
