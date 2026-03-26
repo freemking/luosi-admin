@@ -16,13 +16,11 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # 2. 设置 Node.js 环境（Vue 推荐 18+/20+）
+      # 2. 设置 Node.js 环境（移除所有缓存配置，彻底解决报错）
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20  # 你的项目 Node 版本
-          cache: 'npm'      # 缓存依赖，加速构建
-          cache-dependency-path: frontend/package-lock.json
+          node-version: 20
 
       # 3. 安装依赖 + 构建 Vue 项目（核心：进入 frontend 目录）
       - name: 安装依赖并构建
