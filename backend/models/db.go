@@ -41,7 +41,7 @@ func InitDB() error {
 	}
 
 	// 自动迁移表结构
-	err = db.AutoMigrate(&User{}, &Product{}, &ProductImage{}, &Feedback{})
+	err = db.AutoMigrate(&User{}, &Product{}, &ProductImage{}, &Feedback{}, &News{})
 	if err != nil {
 		return err
 	}

@@ -1,10 +1,44 @@
 package models
 
 import (
+	"database/sql"
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
 )
+
+// NullTime custom type for nullable time with JSON support
+type NullTime struct {
+	sql.NullTime
+}
+
+// MarshalJSON implements json.Marshaler
+func (nt NullTime) MarshalJSON() ([]byte, error) {
+	if !nt.Valid {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(nt.Time.Format("2006-01-02"))
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (nt *NullTime) UnmarshalJSON(data []byte) error {
+	var s *string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s == nil || *s == "" {
+		nt.Valid = false
+		return nil
+	}
+	t, err := time.Parse("2006-01-02", *s)
+	if err != nil {
+		return err
+	}
+	nt.Time = t
+	nt.Valid = true
+	return nil
+}
 
 // User 用户模型
 type User struct {
@@ -52,4 +86,18 @@ type Feedback struct {
 	Message   string         `json:"message" gorm:"type:text;not null"`
 	CreatedAt time.Time      `json:"created_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+}
+
+// News 新闻模型
+type News struct {
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	Title       string         `json:"title" gorm:"size:255;not null"`
+	CoverImage  string         `json:"cover_image" gorm:"size:255"`
+	PublishDate NullTime       `json:"publish_date" gorm:"type:date"`
+	Summary     string         `json:"summary" gorm:"size:500"`
+	Content     string         `json:"content" gorm:"type:text"`
+	Status      int            `json:"status" gorm:"default:1"` // 1: 已发布, 0: 草稿
+	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 }

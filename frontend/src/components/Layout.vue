@@ -43,6 +43,12 @@
             <span>反馈管理</span>
           </router-link>
         </a-menu-item>
+        <a-menu-item key="news">
+          <router-link to="/news">
+            <template #icon><FileTextOutlined /></template>
+            <span>新闻管理</span>
+          </router-link>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -86,6 +92,7 @@ import {
   UserOutlined, 
   AppstoreOutlined, 
   MessageOutlined,
+  FileTextOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined
 } from '@ant-design/icons-vue'

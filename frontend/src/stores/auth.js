@@ -309,3 +309,102 @@ export const useFeedbackStore = defineStore('feedback', {
     }
   }
 })
+
+export const useNewsStore = defineStore('news', {
+  state: () => ({
+    news: [],
+    loading: false,
+    error: null
+  }),
+  actions: {
+    async getNews(page = 1, pageSize = 10) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/news', {
+          params: { page, pageSize }
+        })
+        this.news = response.data.news
+        return {
+          news: response.data.news,
+          total: response.data.total
+        }
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to get news'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    async getNewsItem(id) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get(`/news/${id}`)
+        return response.data.news
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to get news'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    async createNews(newsData) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.post('/news', newsData)
+        this.news.push(response.data.news)
+        return response.data.news
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to create news'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    async updateNews(id, newsData) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.put(`/news/${id}`, newsData)
+        const index = this.news.findIndex(n => n.id === id)
+        if (index !== -1) {
+          this.news[index] = response.data.news
+        }
+        return response.data.news
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to update news'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    async deleteNews(id) {
+      this.loading = true
+      this.error = null
+      try {
+        await apiClient.delete(`/news/${id}`)
+        this.news = this.news.filter(n => n.id !== id)
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to delete news'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    async getNewsCount() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/news/count')
+        return response.data.count
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to get news count'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    }
+  }
+})

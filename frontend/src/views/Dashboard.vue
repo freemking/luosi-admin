@@ -24,31 +24,46 @@
           <div class="stat-number">{{ stats.feedbacks }}</div>
         </a-card>
       </a-col>
+      <a-col :xs="24" :sm="12" :md="8" :lg="6">
+        <a-card :bordered="true" class="stat-card">
+          <template #title>
+            <a-space>
+              <FileTextOutlined style="color: #1890ff; font-size: 24px;" />
+              <span>新闻总数</span>
+            </a-space>
+          </template>
+          <div class="stat-number">{{ stats.news }}</div>
+        </a-card>
+      </a-col>
     </a-row>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { AppstoreOutlined, MessageOutlined } from '@ant-design/icons-vue'
-import { useProductStore, useFeedbackStore } from '../stores/auth'
+import { AppstoreOutlined, MessageOutlined, FileTextOutlined } from '@ant-design/icons-vue'
+import { useProductStore, useFeedbackStore, useNewsStore } from '../stores/auth'
 
 const productStore = useProductStore()
 const feedbackStore = useFeedbackStore()
+const newsStore = useNewsStore()
 
 const stats = ref({
   products: 0,
-  feedbacks: 0
+  feedbacks: 0,
+  news: 0
 })
 
 const fetchStats = async () => {
   try {
-    const [productCount, feedbackCount] = await Promise.all([
+    const [productCount, feedbackCount, newsCount] = await Promise.all([
       productStore.getProductCount(),
-      feedbackStore.getFeedbackCount()
+      feedbackStore.getFeedbackCount(),
+      newsStore.getNewsCount()
     ])
     stats.value.products = productCount
     stats.value.feedbacks = feedbackCount
+    stats.value.news = newsCount
   } catch (err) {
     console.error('Failed to fetch stats:', err)
   }
@@ -152,6 +167,13 @@ onMounted(() => {
 
 :deep(.anticon-message) {
   background: linear-gradient(135deg, @accent 0%, #e5a55d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:deep(.anticon-file-text) {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

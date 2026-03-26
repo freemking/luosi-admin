@@ -6,6 +6,7 @@ import UserManagement from '../views/UserManagement.vue'
 import ProductManagement from '../views/ProductManagement.vue'
 import ProductDetail from '../views/ProductDetail.vue'
 import FeedbackManagement from '../views/FeedbackManagement.vue'
+import NewsManagement from '../views/NewsManagement.vue'
 
 const routes = [
   {
@@ -50,6 +51,11 @@ const routes = [
         path: 'feedbacks',
         name: 'FeedbackManagement',
         component: FeedbackManagement
+      },
+      {
+        path: 'news',
+        name: 'NewsManagement',
+        component: NewsManagement
       }
     ]
   }

@@ -54,6 +54,14 @@ func SetupRoutes(r *gin.Engine) {
 		protected.GET("/feedbacks/count", controllers.GetFeedbackCount)
 		protected.GET("/feedbacks/:id", controllers.GetFeedback)
 
+		// 新闻管理
+		protected.GET("/news", controllers.GetNewsList)
+		protected.GET("/news/count", controllers.GetNewsCount)
+		protected.GET("/news/:id", controllers.GetNews)
+		protected.POST("/news", controllers.CreateNews)
+		protected.PUT("/news/:id", controllers.UpdateNews)
+		protected.DELETE("/news/:id", controllers.DeleteNews)
+
 		// 用户管理
 		protected.GET("/users", controllers.GetUsers)
 		protected.GET("/users/:id", controllers.GetUser)
