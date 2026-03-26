@@ -39,4 +39,4 @@ jobs:
       - name: 部署静态文件到服务器
         run: |
           # 上传前端 dist 文件夹到服务器部署目录（覆盖旧文件）
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }} -r frontend/dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_DIR }}/
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }} -r frontend/dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_DIR }}/dist
