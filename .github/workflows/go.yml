@@ -22,9 +22,11 @@ jobs:
         with:
           go-version: '1.26'  # 改成你的项目 Go 版本
 
-      # 3. 编译 Go 二进制（关键：跨平台编译 Linux 版本）
+      # 3. 编译 Go 二进制（关键：进入backend目录 + 跨平台编译）
       - name: 编译 Go 项目
         run: |
+          # 进入 Go 代码根目录
+          cd backend
           # 禁用CGO + 编译Linux amd64版本
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app main.go
           # 说明：-o app 是编译后的二进制名，main.go 是你的入口文件
@@ -35,16 +37,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-      # 5. 上传编译好的二进制到服务器
+      # 5. 上传编译好的二进制+静态文件到服务器
       - name: 上传文件到服务器
         run: |
-          # 严格主机密钥检查关闭，避免连接失败
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} -p ${{ secrets.SERVER_PORT }} "mkdir -p ${{ secrets.DEPLOY_DIR }}"
-           # 1. 创建部署目录（不存在则创建）
-          $SSH ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p ${{ secrets.DEPLOY_DIR }}"
-                    
-          # 2. 上传Go二进制文件
-          $SCP app ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_DIR }}/
+          # 关闭严格主机检查 + 正确端口位置
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mkdir -p ${{ secrets.DEPLOY_DIR }}"
           
-          # 3. 授权并重启服务
-          $SSH ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd ${{ secrets.DEPLOY_DIR }} && chmod +x app && systemctl restart go-luosi-admin"
+          # 1. 删除旧的静态文件目录
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "rm -rf ${{ secrets.DEPLOY_DIR }}/static ${{ secrets.DEPLOY_DIR }}/templates"
+
+          # 2. 备份旧二进制文件
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "mv ${{ secrets.DEPLOY_DIR }}/app ${{ secrets.DEPLOY_DIR }}/app_old || true"
+          
+          # 3. 上传编译后的二进制文件（核心修改：指定backend/app路径）
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }} backend/app ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_DIR }}/
+
+          # 4. 授权 + 重启服务
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd ${{ secrets.DEPLOY_DIR }} && chmod +x app && sudo systemctl restart go-luosi-admin"
