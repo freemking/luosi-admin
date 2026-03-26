@@ -59,7 +59,7 @@
         <a-form-item label="产品图片">
           <a-upload
             v-model:file-list="fileList"
-            action="http://localhost:8081/api/upload"
+            :action="config.UPLOAD_URL"
             list-type="picture-card"
             :multiple="true"
             :max-count="9"
@@ -95,6 +95,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
 import { useProductStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
+import config from '../config'
 
 const router = useRouter()
 const route = useRoute()

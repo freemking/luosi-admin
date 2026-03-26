@@ -1,0 +1,44 @@
+name: 构建并部署 Vue 前端项目
+
+# 触发条件：push 到 main 分支自动部署 / 手动触发
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'  # 仅前端代码修改时触发（优化效率）
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 拉取项目代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 2. 设置 Node.js 环境（Vue 推荐 18+/20+）
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20  # 你的项目 Node 版本
+          cache: 'npm'      # 缓存依赖，加速构建
+          cache-dependency-path: frontend/package-lock.json
+
+      # 3. 安装依赖 + 构建 Vue 项目（核心：进入 frontend 目录）
+      - name: 安装依赖并构建
+        run: |
+          cd frontend          # 进入 Vue 项目目录
+          npm ci              # 安装依赖（比 npm install 更稳定，适合 CI）
+          npm run build       # 执行构建命令（生成 dist 静态包）
+
+      # 4. 配置 SSH 免密登录（和 Go 项目共用同一个密钥）
+      - name: 配置 SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      # 5. 上传构建后的 dist 目录到服务器
+      - name: 部署静态文件到服务器
+        run: |
+          # 上传前端 dist 文件夹到服务器部署目录（覆盖旧文件）
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SERVER_PORT }} -r frontend/dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_DIR }}/

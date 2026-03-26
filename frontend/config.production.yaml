@@ -1,0 +1,5 @@
+# Production API Configuration
+# This configuration is used for production builds
+
+# API Base URL - change this to your production backend server address
+API_BASE_URL: https://167.88.180.38/api

@@ -1,0 +1,5 @@
+# API Configuration
+# Modify this file to change the backend API address
+
+# API Base URL - change this to your backend server address
+API_BASE_URL: http://localhost:8081/api

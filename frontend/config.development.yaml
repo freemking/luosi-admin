@@ -1,0 +1,5 @@
+# Development API Configuration
+# This configuration is used for development
+
+# API Base URL - change this to your development backend server address
+API_BASE_URL: http://localhost:8081/api
