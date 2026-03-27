@@ -138,7 +138,7 @@ func CreateNews(c *gin.Context) {
 	// 创建新闻
 	news := models.News{
 		Title:       req.Title,
-		CoverImage:  req.CoverImage,
+		CoverImage:  utils.GetRelativePath(req.CoverImage),
 		PublishDate: publishDate,
 		Summary:     req.Summary,
 		Content:     req.Content,
@@ -181,7 +181,7 @@ func UpdateNews(c *gin.Context) {
 	if req.Title != "" {
 		news.Title = req.Title
 	}
-	news.CoverImage = req.CoverImage
+	news.CoverImage = utils.GetRelativePath(req.CoverImage)
 	if req.PublishDate != "" {
 		parsedDate, err := time.Parse("2006-01-02", req.PublishDate)
 		if err == nil {

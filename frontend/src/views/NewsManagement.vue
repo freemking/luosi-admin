@@ -261,9 +261,11 @@ const fetchNews = async () => {
 
 const handleUploadChange = ({ fileList: newFileList }) => {
   fileList.value = newFileList
-  if (newFileList.length > 0 && newFileList[0].response?.url) {
-    newsForm.value.cover_image = newFileList[0].response.url
-  } else if (newFileList.length === 0) {
+  if (newFileList.length > 0) {
+    // Use response.url (relative path) for newly uploaded files
+    // or the existing url for files from edit mode
+    newsForm.value.cover_image = newFileList[0].response?.url || newFileList[0].url || ''
+  } else {
     newsForm.value.cover_image = ''
   }
 }
@@ -300,6 +302,8 @@ const handleEdit = async (record) => {
     publishDateValue.value = newsItem.publish_date ? dayjs(newsItem.publish_date) : null
     
     // Set file list for cover image
+    // Store full URL in 'url' for display, but the form already has the full URL
+    // which will be sent to backend (backend will convert to relative path)
     if (newsItem.cover_image) {
       fileList.value = [{
         uid: '-1',
@@ -336,12 +340,15 @@ const handleSubmit = async () => {
       message.success('新闻创建成功')
     }
     modalVisible.value = false
-    fetchNews()
   } catch (err) {
     message.error(newsStore.error || '保存新闻失败')
+    return
   } finally {
     submitting.value = false
   }
+  
+  // Refresh list outside of try-catch to avoid showing error if refresh fails
+  fetchNews()
 }
 
 const showDeleteModal = (record) => {

@@ -176,12 +176,19 @@ const handleSubmit = async () => {
   try {
     submitting.value = true
     
+    // Process images - handle both newly uploaded and existing images
     const images = fileList.value
-      .filter(file => file.status === 'done' && file.response?.url)
-      .map((file, index) => ({
-        image_url: file.response.url,
-        order: index
-      }))
+      .filter(file => file.status === 'done')
+      .map((file, index) => {
+        // For newly uploaded files, use response.url (relative path)
+        // For existing files from edit, use response.url or extract from url property
+        let imageUrl = file.response?.url || file.url || ''
+        return {
+          image_url: imageUrl,
+          order: index
+        }
+      })
+      .filter(img => img.image_url) // Filter out empty URLs
     
     const submitData = {
       ...productForm.value,
@@ -195,12 +202,15 @@ const handleSubmit = async () => {
       await productStore.createProduct(submitData)
       message.success('产品创建成功')
     }
-    goBack()
   } catch (err) {
     message.error(productStore.error || '保存产品失败')
+    return
   } finally {
     submitting.value = false
   }
+  
+  // Navigate back outside of try-catch
+  goBack()
 }
 
 const goBack = () => {

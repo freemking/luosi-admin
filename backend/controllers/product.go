@@ -172,7 +172,7 @@ func CreateProduct(c *gin.Context) {
 	for _, img := range req.Images {
 		productImage := models.ProductImage{
 			ProductID: product.ID,
-			ImageURL:  img.ImageURL,
+			ImageURL:  utils.GetRelativePath(img.ImageURL),
 			Order:     img.Order,
 		}
 		models.DB.Create(&productImage)
@@ -239,7 +239,7 @@ func UpdateProduct(c *gin.Context) {
 		for _, img := range req.Images {
 			productImage := models.ProductImage{
 				ProductID: product.ID,
-				ImageURL:  img.ImageURL,
+				ImageURL:  utils.GetRelativePath(img.ImageURL),
 				Order:     img.Order,
 			}
 			models.DB.Create(&productImage)

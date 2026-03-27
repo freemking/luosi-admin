@@ -94,3 +94,35 @@ func GetFullURL(path string) string {
 	
 	return fmt.Sprintf("%s/%s", CDNConfigInstance.Domain, path)
 }
+
+// GetRelativePath extracts the relative path from a full URL or returns the path as-is
+// This is useful for storing paths in the database
+func GetRelativePath(urlOrPath string) string {
+	if urlOrPath == "" {
+		return ""
+	}
+	
+	// If it's not a full URL, return as-is (remove leading slash for consistency)
+	if !strings.HasPrefix(urlOrPath, "http://") && !strings.HasPrefix(urlOrPath, "https://") {
+		return strings.TrimPrefix(urlOrPath, "/")
+	}
+	
+	// For CDN URLs, extract the path after domain
+	if CDNConfigInstance != nil {
+		domain := CDNConfigInstance.Domain
+		if strings.HasPrefix(urlOrPath, domain+"/") {
+			return strings.TrimPrefix(urlOrPath, domain+"/")
+		}
+	}
+	
+	// For server URLs, extract the path
+	if ServerURL != "" {
+		if strings.HasPrefix(urlOrPath, ServerURL) {
+			path := strings.TrimPrefix(urlOrPath, ServerURL)
+			return strings.TrimPrefix(path, "/")
+		}
+	}
+	
+	// If we can't extract, return the original
+	return urlOrPath
+}
