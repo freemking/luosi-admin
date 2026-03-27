@@ -82,7 +82,7 @@
         <a-form-item label="封面图片">
           <a-upload
             v-model:file-list="fileList"
-            :action="config.UPLOAD_URL"
+            :action="config.getUploadUrl('news')"
             list-type="picture-card"
             :max-count="1"
             :headers="uploadHeaders"

@@ -1,70 +1,139 @@
 package controllers
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
+	"io"
 	"net/http"
-	"os"
 	"path/filepath"
-	"time"
 
+	"admin-backend/utils"
+
+	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"golang.org/x/image/webp"
 )
 
+const maxDimension = 1000
+
 func UploadImage(c *gin.Context) {
-	// 解析多部分表单
-	form, err := c.MultipartForm()
+	// Get upload type (products, news)
+	uploadType := c.DefaultQuery("type", "products")
+	
+	// Validate upload type
+	validTypes := map[string]bool{"products": true, "news": true}
+	if !validTypes[uploadType] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid upload type. Use 'products' or 'news'"})
+		return
+	}
+
+	// Get the file from form
+	file, header, err := c.Request.FormFile("image")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No file uploaded"})
+		return
+	}
+	defer file.Close()
+
+	// Validate file extension
+	ext := filepath.Ext(header.Filename)
+	allowedExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true}
+	if !allowedExts[ext] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed"})
 		return
 	}
 
-	// 获取所有上传的文件
-	files := form.File["image"]
-	if len(files) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No files uploaded"})
+	// Read file content
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
 		return
 	}
 
-	// 处理每个文件
-	var urls []string
-	for _, file := range files {
-		ext := filepath.Ext(file.Filename)
-		allowedExts := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true}
-		if !allowedExts[ext] {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Only jpg, jpeg, png, gif, webp are allowed"})
-			return
-		}
-
-		uploadDir := "./uploads"
-		if err := os.MkdirAll(uploadDir, 0755); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
-			return
-		}
-
-		filename := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String()[:8], ext)
-		filepath := filepath.Join(uploadDir, filename)
-
-		if err := c.SaveUploadedFile(file, filepath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
-			return
-		}
-
-		imageURL := fmt.Sprintf("/uploads/%s", filename)
-		urls = append(urls, imageURL)
-	}
-
-	// 如果只上传了一个文件，保持原来的返回格式
-	if len(urls) == 1 {
-		c.JSON(http.StatusOK, gin.H{
-			"url":  urls[0],
-			"name": files[0].Filename,
-		})
+	// Decode and resize image
+	resizedData, err := resizeImageIfNeeded(fileData, ext)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to process image: %v", err)})
 		return
 	}
 
-	// 多个文件返回URL数组
+	// Upload to Qiniu
+	relativePath, err := utils.UploadToQiniu(resizedData, uploadType, ext)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to upload to CDN: %v", err)})
+		return
+	}
+
+	// Return the relative path and full URL
 	c.JSON(http.StatusOK, gin.H{
-		"urls": urls,
+		"url":      relativePath,
+		"full_url": utils.GetFullURL(relativePath),
+		"name":     header.Filename,
 	})
+}
+
+// resizeImageIfNeeded decodes the image and resizes it if dimensions exceed maxDimension
+// Also applies compression to all images
+func resizeImageIfNeeded(data []byte, ext string) ([]byte, error) {
+	// Decode image based on format
+	var img image.Image
+	var err error
+
+	reader := bytes.NewReader(data)
+	
+	switch ext {
+	case ".jpg", ".jpeg":
+		img, err = jpeg.Decode(reader)
+	case ".png":
+		img, err = png.Decode(reader)
+	case ".gif":
+		img, err = gif.Decode(reader)
+	case ".webp":
+		img, err = webp.Decode(reader)
+	default:
+		return data, nil // Return original if format not supported
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %v", err)
+	}
+
+	// Get original dimensions
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	// Resize if dimensions exceed maxDimension
+	if width > maxDimension || height > maxDimension {
+		img = imaging.Fit(img, maxDimension, maxDimension, imaging.Lanczos)
+	}
+
+	// Encode back with compression
+	var buf bytes.Buffer
+	switch ext {
+	case ".jpg", ".jpeg":
+		// JPEG: quality 85 for good compression with minimal quality loss
+		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 85})
+	case ".png":
+		// PNG: lossless compression (BestCompression level)
+		encoder := png.Encoder{CompressionLevel: png.BestCompression}
+		err = encoder.Encode(&buf, img)
+	case ".gif":
+		// GIF: lossless
+		err = gif.Encode(&buf, img, nil)
+	case ".webp":
+		// webp encoding is not directly supported, convert to jpeg
+		ext = ".jpg"
+		err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 85})
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode image: %v", err)
+	}
+
+	return buf.Bytes(), nil
 }

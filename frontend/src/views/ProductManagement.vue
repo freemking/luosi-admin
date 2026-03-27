@@ -29,18 +29,6 @@
           :bordered="false"
         >
           <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'images'">
-              <div v-if="record.images && record.images.length > 0" class="image-list">
-                <img 
-                  v-for="img in record.images" 
-                  :key="img.id" 
-                  :src="img.image_url" 
-                  class="image-thumb"
-                  title="查看图片"
-                />
-              </div>
-              <span v-else style="color: #666666">暂无图片</span>
-            </template>
             <template v-if="column.key === 'action'">
               <a-space size="small">
                 <a-button size="small" @click="handleEdit(record)">编辑</a-button>
@@ -123,11 +111,6 @@ const columns = [
     dataIndex: 'material',
     key: 'material',
     width: 120
-  },
-  {
-    title: '图片',
-    key: 'images',
-    width: 200
   },
   {
     title: '操作',

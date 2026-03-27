@@ -31,6 +31,11 @@ const config = {
   // Upload URL - used for file uploads
   get UPLOAD_URL() {
     return `${this.API_BASE_URL}/upload`
+  },
+
+  // Get upload URL with type parameter (products, news)
+  getUploadUrl(type = 'products') {
+    return `${this.API_BASE_URL}/upload?type=${type}`
   }
 }
 

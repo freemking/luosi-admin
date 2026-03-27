@@ -9,6 +9,8 @@ import (
 // Config 配置结构
 type Config struct {
 	Database DatabaseConfig `yaml:"database"`
+	Server   ServerConfig   `yaml:"server"`
+	CDN      CDNConfig      `yaml:"cdn"`
 }
 
 // DatabaseConfig 数据库配置
@@ -22,6 +24,19 @@ type DatabaseConfig struct {
 	Charset  string `yaml:"charset"`
 	ParseTime bool   `yaml:"parseTime"`
 	Loc      string `yaml:"loc"`
+}
+
+// ServerConfig 服务器配置
+type ServerConfig struct {
+	URL string `yaml:"url"`
+}
+
+// CDNConfig CDN配置
+type CDNConfig struct {
+	Domain    string `yaml:"domain"`
+	AccessKey string `yaml:"accessKey"`
+	SecretKey string `yaml:"secretKey"`
+	Bucket    string `yaml:"bucket"`
 }
 
 // LoadConfig 加载配置文件

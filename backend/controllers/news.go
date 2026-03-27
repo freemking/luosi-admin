@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"admin-backend/models"
+	"admin-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,39 @@ type NewsRequest struct {
 	Summary     string `json:"summary"`
 	Content     string `json:"content"`
 	Status      int    `json:"status"` // 1: 已发布, 0: 草稿
+}
+
+// NewsResponse 新闻响应结构
+type NewsResponse struct {
+	ID          uint   `json:"id"`
+	Title       string `json:"title"`
+	CoverImage  string `json:"cover_image"`
+	PublishDate string `json:"publish_date"`
+	Summary     string `json:"summary"`
+	Content     string `json:"content"`
+	Status      int    `json:"status"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
+// convertNewsToResponse converts a news model to response with full URL
+func convertNewsToResponse(news models.News) NewsResponse {
+	publishDate := ""
+	if news.PublishDate.Valid {
+		publishDate = news.PublishDate.Time.Format("2006-01-02")
+	}
+	
+	return NewsResponse{
+		ID:          news.ID,
+		Title:       news.Title,
+		CoverImage:  utils.GetFullURL(news.CoverImage),
+		PublishDate: publishDate,
+		Summary:     news.Summary,
+		Content:     news.Content,
+		Status:      news.Status,
+		CreatedAt:   news.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:   news.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
 }
 
 // GetNewsList 获取新闻列表
@@ -53,8 +87,14 @@ func GetNewsList(c *gin.Context) {
 		return
 	}
 
+	// Convert to response with full URLs
+	var newsResponses []NewsResponse
+	for _, news := range newsList {
+		newsResponses = append(newsResponses, convertNewsToResponse(news))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"news":  newsList,
+		"news":  newsResponses,
 		"total": total,
 	})
 }
@@ -75,7 +115,7 @@ func GetNews(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"news": news})
+	c.JSON(http.StatusOK, gin.H{"news": convertNewsToResponse(news)})
 }
 
 // CreateNews 创建新闻
@@ -111,7 +151,7 @@ func CreateNews(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"news": news})
+	c.JSON(http.StatusOK, gin.H{"news": convertNewsToResponse(news)})
 }
 
 // UpdateNews 更新新闻
@@ -161,7 +201,7 @@ func UpdateNews(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"news": news})
+	c.JSON(http.StatusOK, gin.H{"news": convertNewsToResponse(news)})
 }
 
 // DeleteNews 删除新闻

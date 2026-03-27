@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"admin-backend/models"
+	"admin-backend/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,52 @@ type UpdateProductRequest struct {
 	Standard    string            `json:"standard"`
 	Material    string            `json:"material"`
 	Images      []ProductImageRequest `json:"images"`
+}
+
+// ProductResponse 产品响应结构
+type ProductResponse struct {
+	ID          uint                   `json:"id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Category    string                 `json:"category"`
+	Standard    string                 `json:"standard"`
+	Material    string                 `json:"material"`
+	CreatedAt   string                 `json:"created_at"`
+	UpdatedAt   string                 `json:"updated_at"`
+	Images      []ProductImageResponse `json:"images"`
+}
+
+// ProductImageResponse 产品图片响应结构
+type ProductImageResponse struct {
+	ID        uint   `json:"id"`
+	ProductID uint   `json:"product_id"`
+	ImageURL  string `json:"image_url"`
+	Order     int    `json:"order"`
+}
+
+// convertProductToResponse converts a product model to response with full URLs
+func convertProductToResponse(product models.Product) ProductResponse {
+	response := ProductResponse{
+		ID:          product.ID,
+		Name:        product.Name,
+		Description: product.Description,
+		Category:    product.Category,
+		Standard:    product.Standard,
+		Material:    product.Material,
+		CreatedAt:   product.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:   product.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
+	
+	for _, img := range product.Images {
+		response.Images = append(response.Images, ProductImageResponse{
+			ID:        img.ID,
+			ProductID: img.ProductID,
+			ImageURL:  utils.GetFullURL(img.ImageURL),
+			Order:     img.Order,
+		})
+	}
+	
+	return response
 }
 
 // GetProducts 获取产品列表
@@ -67,8 +114,14 @@ func GetProducts(c *gin.Context) {
 		return
 	}
 
+	// Convert to response with full URLs
+	var productResponses []ProductResponse
+	for _, product := range products {
+		productResponses = append(productResponses, convertProductToResponse(product))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"products": products,
+		"products": productResponses,
 		"total":    total,
 	})
 }
@@ -89,7 +142,7 @@ func GetProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"product": product})
+	c.JSON(http.StatusOK, gin.H{"product": convertProductToResponse(product)})
 }
 
 // CreateProduct 创建产品
@@ -128,7 +181,7 @@ func CreateProduct(c *gin.Context) {
 	// 重新加载产品及其图片
 	models.DB.Preload("Images").First(&product, product.ID)
 
-	c.JSON(http.StatusOK, gin.H{"product": product})
+	c.JSON(http.StatusOK, gin.H{"product": convertProductToResponse(product)})
 }
 
 // UpdateProduct 更新产品
@@ -196,7 +249,7 @@ func UpdateProduct(c *gin.Context) {
 	// 重新加载产品及其图片
 	models.DB.Preload("Images").First(&product, product.ID)
 
-	c.JSON(http.StatusOK, gin.H{"product": product})
+	c.JSON(http.StatusOK, gin.H{"product": convertProductToResponse(product)})
 }
 
 // DeleteProduct 删除产品

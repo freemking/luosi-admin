@@ -11,8 +11,17 @@ import (
 )
 
 func main() {
+	// 加载配置文件
+	cfg, err := utils.LoadConfig("conf.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// 初始化CDN配置
+	utils.InitCDNConfig(cfg)
+
 	// 初始化数据库
-	err := models.InitDB()
+	err = models.InitDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}

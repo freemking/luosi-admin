@@ -19,7 +19,7 @@ func SetupRoutes(r *gin.Engine) {
 		AllowCredentials: true,
 	}))
 
-	// 静态文件服务 - 上传的图片
+	// 静态文件服务 - 保留用于旧的本地上传图片访问
 	r.Static("/uploads", "./uploads")
 
 	// 公开路由

@@ -59,7 +59,7 @@
         <a-form-item label="产品图片">
           <a-upload
             v-model:file-list="fileList"
-            :action="config.UPLOAD_URL"
+            :action="config.getUploadUrl('products')"
             list-type="picture-card"
             :multiple="true"
             :max-count="9"
