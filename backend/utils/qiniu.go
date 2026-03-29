@@ -92,7 +92,13 @@ func GetFullURL(path string) string {
 	// Remove leading slash if present
 	path = strings.TrimPrefix(path, "/")
 	
-	return fmt.Sprintf("%s/%s", CDNConfigInstance.Domain, path)
+	// Ensure domain ends with slash, path does not start with slash
+	domain := CDNConfigInstance.Domain
+	if !strings.HasSuffix(domain, "/") {
+		domain = domain + "/"
+	}
+	
+	return domain + path
 }
 
 // GetRelativePath extracts the relative path from a full URL or returns the path as-is

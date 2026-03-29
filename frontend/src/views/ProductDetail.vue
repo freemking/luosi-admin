@@ -35,16 +35,6 @@
           <a-input v-model:value="productForm.category" placeholder="请输入产品分类" />
         </a-form-item>
         <a-form-item
-          label="产品描述"
-          name="description"
-        >
-          <a-textarea 
-            v-model:value="productForm.description" 
-            placeholder="请输入产品描述" 
-            :rows="3"
-          />
-        </a-form-item>
-        <a-form-item
           label="规格"
           name="standard"
         >
@@ -77,6 +67,30 @@
             <img alt="example" style="width: 100%" :src="previewImage" />
           </a-modal>
         </a-form-item>
+        <a-form-item
+          label="产品描述"
+          name="description"
+        >
+          <div class="editor-container" v-if="!isEditing || editorHtmlLoaded">
+            <Toolbar
+              v-if="editorRef"
+              :editor="editorRef"
+              :defaultConfig="toolbarConfig"
+              :mode="mode"
+              style="border-bottom: 1px solid #ccc"
+            />
+            <Editor
+              :defaultConfig="editorConfig"
+              :mode="mode"
+              @onCreated="handleCreated"
+              @onChange="handleEditorChange"
+              style="height: 400px; overflow-y: hidden"
+            />
+          </div>
+          <div v-else class="editor-placeholder">
+            加载中...
+          </div>
+        </a-form-item>
       </a-form>
       
       <div class="action-buttons">
@@ -90,12 +104,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { PlusOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
 import { useProductStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
 import config from '../config'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import '@wangeditor/editor/dist/css/style.css'
 
 const router = useRouter()
 const route = useRoute()
@@ -110,6 +126,85 @@ const productForm = ref({
   material: '',
   images: []
 })
+
+const editorRef = ref(null)
+const mode = ref('default')
+const toolbarConfig = ref({})
+const editorHtml = ref('')
+const editorReady = ref(false)
+const editorHtmlLoaded = ref(false)
+const editorConfig = ref({
+  placeholder: '请输入产品描述...',
+  MENU_CONF: {
+    uploadImage: {
+      customUpload: customUploadImage
+    }
+  }
+})
+
+function handleCreated(editor) {
+  editorRef.value = editor
+  editorReady.value = true
+  
+  if (editorHtml.value) {
+    setTimeout(() => {
+      const processedHtml = preprocessHtml(editorHtml.value)
+      editor.setHtml(processedHtml)
+    }, 50)
+  }
+}
+
+function preprocessHtml(html) {
+  return html.replace(/(\w+)=(["'])(.*?)\2/gi, (match, attr, quote, value) => {
+    let cleanedValue = value.trim().replace(/^[`"']|[`"']$/g, '').trim()
+    try {
+      decodeURIComponent(cleanedValue)
+      return `${attr}=${quote}${cleanedValue}${quote}`
+    } catch (e) {
+      const safeValue = cleanedValue.replace(/%(?![0-9A-Fa-f]{2})/g, '%25')
+      return `${attr}=${quote}${safeValue}${quote}`
+    }
+  })
+}
+
+function handleEditorChange(editor) {
+  productForm.value.description = editor.getHtml()
+}
+
+onBeforeUnmount(() => {
+  const editor = editorRef.value
+  if (editor == null) return
+  editor.destroy()
+})
+
+async function customUploadImage(file, insertFn) {
+  const formData = new FormData()
+  formData.append('image', file)
+  
+  try {
+    const response = await fetch(config.getUploadUrl('products'), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    })
+    
+    const result = await response.json()
+    
+    if (response.ok && result.full_url) {
+      insertFn(result.full_url, file.name, '100%')
+    } else if (response.ok && result.url) {
+      const imageUrl = `${config.API_BASE_URL.replace(/\/api$/, '')}/${result.url}`
+      insertFn(imageUrl, file.name, '100%')
+    } else {
+      message.error(result.error || '图片上传失败')
+    }
+  } catch (error) {
+    message.error('图片上传失败')
+    console.error('Upload error:', error)
+  }
+}
 
 const fileList = ref([])
 const previewVisible = ref(false)
@@ -126,11 +221,14 @@ const fetchProduct = async () => {
     try {
       const product = await productStore.getProduct(route.params.id)
       productForm.value.name = product.name || ''
-      productForm.value.description = product.description || ''
       productForm.value.category = product.category || ''
       productForm.value.standard = product.standard || ''
       productForm.value.material = product.material || ''
       productForm.value.images = product.images ? [...product.images] : []
+      
+      editorHtml.value = product.description || ''
+      productForm.value.description = product.description || ''
+      editorHtmlLoaded.value = true
       
       if (product.images && product.images.length > 0) {
         fileList.value = product.images.map((img, index) => ({
@@ -145,6 +243,8 @@ const fetchProduct = async () => {
       message.error('获取产品信息失败')
       goBack()
     }
+  } else {
+    editorHtmlLoaded.value = true
   }
 }
 
@@ -316,6 +416,29 @@ onMounted(() => {
   gap: 8px;
   margin-bottom: 8px;
   align-items: center;
+}
+
+.editor-container {
+  width: 100%;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+
+  :deep(.w-e-text-container) {
+    background: #fff;
+  }
+}
+
+.editor-placeholder {
+  height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  background: #f5f5f5;
+  border: 1px solid #d1d9e0;
+  border-radius: 4px;
 }
 
 @media (max-width: 768px) {
