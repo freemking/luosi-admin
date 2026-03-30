@@ -63,7 +63,7 @@
       :title="isEditing ? '编辑新闻' : '新建新闻'"
       @ok="handleSubmit"
       :confirmLoading="submitting"
-      width="720px"
+      width="900px"
       destroyOnClose
     >
       <a-form
@@ -127,10 +127,12 @@
         </a-form-item>
 
         <a-form-item label="内容">
-          <a-textarea 
-            v-model:value="newsForm.content" 
-            placeholder="请输入内容"
-            :rows="6"
+          <MdEditor 
+            v-model="newsForm.content" 
+            :theme="editorTheme"
+            placeholder="请输入内容（支持Markdown格式）"
+            style="height: 400px"
+            :onUploadImg="handleUploadImg"
           />
         </a-form-item>
       </a-form>
@@ -162,6 +164,8 @@ import { useNewsStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
 import config from '../config'
 import dayjs from 'dayjs'
+import { MdEditor } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
 
 const newsStore = useNewsStore()
 const loading = ref(true)
@@ -171,6 +175,7 @@ const submitting = ref(false)
 const deleting = ref(false)
 const isEditing = ref(false)
 const currentId = ref(null)
+const editorTheme = ref('light')
 
 // Pagination
 const currentPage = ref(1)
@@ -267,6 +272,45 @@ const handleUploadChange = ({ fileList: newFileList }) => {
     newsForm.value.cover_image = newFileList[0].response?.url || newFileList[0].url || ''
   } else {
     newsForm.value.cover_image = ''
+  }
+}
+
+// Handle image upload in Markdown editor
+const handleUploadImg = async (files, callback) => {
+  const uploadPromises = files.map(file => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData()
+      formData.append('image', file)
+      
+      fetch(config.getUploadUrl('news'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.full_url) {
+          // Use full_url returned from backend
+          resolve(data.full_url)
+        } else if (data.url) {
+          // Fallback: construct URL from relative path
+          resolve(config.API_BASE_URL.replace('/api', '') + '/' + data.url)
+        } else {
+          reject(new Error('Upload failed'))
+        }
+      })
+      .catch(err => reject(err))
+    })
+  })
+  
+  try {
+    const urls = await Promise.all(uploadPromises)
+    callback(urls)
+  } catch (err) {
+    message.error('图片上传失败')
+    callback([])
   }
 }
 
