@@ -40,12 +40,6 @@ func InitDB() error {
 		return err
 	}
 
-	// 自动迁移表结构
-	err = db.AutoMigrate(&User{}, &Product{}, &ProductImage{}, &Feedback{}, &News{})
-	if err != nil {
-		return err
-	}
-
 	DB = db
 	log.Println("Database initialized successfully")
 	return nil
