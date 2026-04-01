@@ -14,6 +14,29 @@ apiClient.interceptors.request.use(config => {
   return config
 })
 
+// Response interceptor to handle 401 errors
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Don't redirect if already on login page or if it's a login request
+      const isLoginRequest = error.config.url.includes('/login')
+      const isLoginPage = window.location.pathname === '/login'
+      
+      if (!isLoginRequest && !isLoginPage) {
+        // Clear auth data
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        
+        // Show message and redirect to login
+        alert('Session expired. Please login again.')
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: JSON.parse(localStorage.getItem('user')) || null,
