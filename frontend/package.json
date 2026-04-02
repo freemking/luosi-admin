@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@wangeditor/editor": "^5.1.23",
-    "@wangeditor/editor-for-vue": "^5.1.12",
+    "@ckeditor/ckeditor5-vue": "^7.3.0",
+    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.13.6",
     "dayjs": "^1.11.20",

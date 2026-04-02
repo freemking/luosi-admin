@@ -72,21 +72,13 @@
           name="description"
         >
           <div v-if="loading">Loading...</div>
-          <div v-else style="border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">
-            <Toolbar
-              style="border-bottom: 1px solid #ccc"
-              :editor="editorRef"
-              :defaultConfig="toolbarConfig"
-              mode="simple"
-            />
-            <Editor
-              v-model="productForm.description"
-              style="height: 400px; overflow-y: hidden;"
-              :defaultConfig="editorConfig"
-              mode="simple"
-              @onCreated="handleCreated"
-            />
-          </div>
+          <Ckeditor
+            v-else
+            v-model="productForm.description"
+            :editor="editor"
+            :config="editorConfig"
+            :key="editorKey"
+          />
         </a-form-item>
       </a-form>
       
@@ -101,14 +93,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, shallowRef, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { PlusOutlined, ArrowLeftOutlined } from '@ant-design/icons-vue'
 import { useProductStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
 import config from '../config'
-import '@wangeditor/editor/dist/css/style.css'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import { Ckeditor } from '@ckeditor/ckeditor5-vue'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const router = useRouter()
 const route = useRoute()
@@ -125,62 +117,20 @@ const productForm = ref({
   images: []
 })
 
-// Editor
-const editorRef = shallowRef()
-
-const toolbarConfig = {}
+// CKEditor
+const editorKey = ref(0)
+const editor = ClassicEditor
 
 const editorConfig = {
-  placeholder: '请输入产品描述...',
-  MENU_CONF: {
-    uploadImage: {
-      async customUpload(file, insertFn) {
-        const formData = new FormData()
-        formData.append('image', file)
-        
-        try {
-          const response = await fetch(config.getUploadUrl('products'), {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: formData
-          })
-          const data = await response.json()
-          const imageUrl = data.full_url || (config.API_BASE_URL.replace('/api', '') + '/' + data.url)
-          if (imageUrl) {
-            // insertFn(url, alt, href) - alt and href are optional
-            insertFn(imageUrl, '', '')
-          }
-        } catch (err) {
-          message.error('图片上传失败')
-        }
-      }
-    },
-    insertImage: {
-      parseImageSrc: (src) => src, // Allow any image source
-      checkImage: (src) => {
-        // Return true to allow, false to disallow
-        return true
-      }
-    }
-  }
-}
-
-const handleCreated = (editor) => {
-  editorRef.value = editor
-  // Set HTML content after editor is created with a small delay to ensure DOM is ready
-  if (productForm.value.description) {
-    setTimeout(() => {
-      try {
-        if (editor && !editor.isDestroyed) {
-          editor.setHtml(productForm.value.description)
-        }
-      } catch (e) {
-        console.warn('Failed to set editor HTML:', e)
-      }
-    }, 100)
-  }
+  toolbar: [
+    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+    'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo'
+  ],
+  table: {
+    contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+  },
+  // Simple image upload - CKEditor Classic build doesn't include image upload by default
+  // Images can be added via URL or users can copy-paste images
 }
 
 const fileList = ref([])
@@ -293,12 +243,6 @@ const goBack = () => {
 onMounted(() => {
   fetchProduct()
 })
-
-onBeforeUnmount(() => {
-  const editor = editorRef.value
-  if (editor == null) return
-  editor.destroy()
-})
 </script>
 
 <style scoped lang="less">
@@ -310,16 +254,6 @@ onBeforeUnmount(() => {
 
 .product-detail {
   width: 100%;
-
-  // Editor image styles
-  :deep(.w-e-text-container) {
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 10px 0;
-    }
-  }
 
   :deep(.ant-page-header-heading-title) {
     font-family: 'Outfit', sans-serif;

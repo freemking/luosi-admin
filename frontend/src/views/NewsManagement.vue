@@ -127,21 +127,12 @@
         </a-form-item>
 
         <a-form-item label="内容">
-          <div style="border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">
-            <Toolbar
-              style="border-bottom: 1px solid #ccc"
-              :editor="editorRef"
-              :defaultConfig="toolbarConfig"
-              mode="simple"
-            />
-            <Editor
-              v-model="newsForm.content"
-              style="height: 400px; overflow-y: hidden;"
-              :defaultConfig="editorConfig"
-              mode="simple"
-              @onCreated="handleCreated"
-            />
-          </div>
+          <Ckeditor
+            v-model="newsForm.content"
+            :editor="editor"
+            :config="editorConfig"
+            :key="editorKey"
+          />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -166,14 +157,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, shallowRef } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import { useNewsStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
 import config from '../config'
 import dayjs from 'dayjs'
-import '@wangeditor/editor/dist/css/style.css'
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import { Ckeditor } from '@ckeditor/ckeditor5-vue'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const newsStore = useNewsStore()
 const loading = ref(true)
@@ -184,61 +175,17 @@ const deleting = ref(false)
 const isEditing = ref(false)
 const currentId = ref(null)
 
-// Editor
-const editorRef = shallowRef()
-
-const toolbarConfig = {}
+// CKEditor
+const editorKey = ref(0)
+const editor = ClassicEditor
 
 const editorConfig = {
-  placeholder: '请输入内容...',
-  MENU_CONF: {
-    uploadImage: {
-      async customUpload(file, insertFn) {
-        const formData = new FormData()
-        formData.append('image', file)
-        
-        try {
-          const response = await fetch(config.getUploadUrl('news'), {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: formData
-          })
-          const data = await response.json()
-          const imageUrl = data.full_url || (config.API_BASE_URL.replace('/api', '') + '/' + data.url)
-          if (imageUrl) {
-            // insertFn(url, alt, href) - alt and href are optional
-            insertFn(imageUrl, '', '')
-          }
-        } catch (err) {
-          message.error('图片上传失败')
-        }
-      }
-    },
-    insertImage: {
-      parseImageSrc: (src) => src, // Allow any image source
-      checkImage: (src) => {
-        // Return true to allow, false to disallow
-        return true
-      }
-    }
-  }
-}
-
-const handleCreated = (editor) => {
-  editorRef.value = editor
-  // Set HTML content after editor is created with a small delay to ensure DOM is ready
-  if (newsForm.value.content) {
-    setTimeout(() => {
-      try {
-        if (editor && !editor.isDestroyed) {
-          editor.setHtml(newsForm.value.content)
-        }
-      } catch (e) {
-        console.warn('Failed to set editor HTML:', e)
-      }
-    }, 100)
+  toolbar: [
+    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+    'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo'
+  ],
+  table: {
+    contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
   }
 }
 
@@ -464,12 +411,6 @@ const formatDate = (dateStr) => {
 onMounted(() => {
   fetchNews()
 })
-
-onBeforeUnmount(() => {
-  const editor = editorRef.value
-  if (editor == null) return
-  editor.destroy()
-})
 </script>
 
 <style scoped lang="less">
@@ -481,16 +422,6 @@ onBeforeUnmount(() => {
 
 .news-management {
   width: 100%;
-
-  // Editor image styles
-  :deep(.w-e-text-container) {
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 10px 0;
-    }
-  }
 
   :deep(.ant-page-header-heading-title) {
     font-family: 'Outfit', sans-serif;
