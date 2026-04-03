@@ -53,16 +53,17 @@ type User struct {
 
 // Product 产品模型
 type Product struct {
-	ID          uint           `json:"id" gorm:"primaryKey"`
-	Name        string         `json:"name" gorm:"size:255;not null"`
-	Description string         `json:"description" gorm:"type:text"`
-	Category    string         `json:"category" gorm:"size:100;not null"`
-	Standard    string         `json:"standard" gorm:"size:100"`
-	Material    string         `json:"material" gorm:"size:100"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
-	Images      []ProductImage `json:"images" gorm:"foreignKey:ProductID"`
+	ID              uint           `json:"id" gorm:"primaryKey"`
+	Name            string         `json:"name" gorm:"size:255;not null"`
+	MiniDescription string         `json:"mini_description" gorm:"type:text"` // Plain text version of description
+	Description     string         `json:"description" gorm:"type:text"`
+	Category        string         `json:"category" gorm:"size:100;not null"`
+	Standard        string         `json:"standard" gorm:"size:100"`
+	Material        string         `json:"material" gorm:"size:100"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       gorm.DeletedAt `json:"-" gorm:"index"`
+	Images          []ProductImage `json:"images" gorm:"foreignKey:ProductID"`
 }
 
 // ProductImage 产品图片模型

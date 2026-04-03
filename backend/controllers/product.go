@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"admin-backend/models"
 	"admin-backend/utils"
@@ -10,13 +12,41 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// stripHTML removes HTML tags from a string and returns plain text
+func stripHTML(html string) string {
+	// Remove HTML tags
+	re := regexp.MustCompile(`<[^>]*>`)
+	text := re.ReplaceAllString(html, "")
+
+	// Decode common HTML entities
+	text = strings.ReplaceAll(text, "&nbsp;", " ")
+	text = strings.ReplaceAll(text, "&amp;", "&")
+	text = strings.ReplaceAll(text, "&lt;", "<")
+	text = strings.ReplaceAll(text, "&gt;", ">")
+	text = strings.ReplaceAll(text, "&quot;", "\"")
+	text = strings.ReplaceAll(text, "&#39;", "'")
+	text = strings.ReplaceAll(text, "&apos;", "'")
+
+	// Remove extra whitespace
+	text = strings.TrimSpace(text)
+	re2 := regexp.MustCompile(`\s+`)
+	text = re2.ReplaceAllString(text, " ")
+
+	// Limit to reasonable length (e.g., 500 characters for mini description)
+	if len(text) > 500 {
+		text = text[:500] + "..."
+	}
+
+	return text
+}
+
 // ProductRequest 产品请求结构
 type ProductRequest struct {
-	Name        string            `json:"name" binding:"required"`
-	Description string            `json:"description"`
-	Category    string            `json:"category" binding:"required"`
-	Standard    string            `json:"standard"`
-	Material    string            `json:"material"`
+	Name        string                `json:"name" binding:"required"`
+	Description string                `json:"description"`
+	Category    string                `json:"category" binding:"required"`
+	Standard    string                `json:"standard"`
+	Material    string                `json:"material"`
 	Images      []ProductImageRequest `json:"images"`
 }
 
@@ -28,11 +58,11 @@ type ProductImageRequest struct {
 
 // UpdateProductRequest 更新产品请求结构
 type UpdateProductRequest struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Category    string            `json:"category"`
-	Standard    string            `json:"standard"`
-	Material    string            `json:"material"`
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Category    string                `json:"category"`
+	Standard    string                `json:"standard"`
+	Material    string                `json:"material"`
 	Images      []ProductImageRequest `json:"images"`
 }
 
@@ -69,7 +99,7 @@ func convertProductToResponse(product models.Product) ProductResponse {
 		CreatedAt:   product.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:   product.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
-	
+
 	for _, img := range product.Images {
 		response.Images = append(response.Images, ProductImageResponse{
 			ID:        img.ID,
@@ -78,7 +108,7 @@ func convertProductToResponse(product models.Product) ProductResponse {
 			Order:     img.Order,
 		})
 	}
-	
+
 	return response
 }
 
@@ -155,11 +185,12 @@ func CreateProduct(c *gin.Context) {
 
 	// 创建产品
 	product := models.Product{
-		Name:        req.Name,
-		Description: req.Description,
-		Category:    req.Category,
-		Standard:    req.Standard,
-		Material:    req.Material,
+		Name:            req.Name,
+		MiniDescription: stripHTML(req.Description),
+		Description:     req.Description,
+		Category:        req.Category,
+		Standard:        req.Standard,
+		Material:        req.Material,
 	}
 
 	result := models.DB.Create(&product)
@@ -213,6 +244,7 @@ func UpdateProduct(c *gin.Context) {
 	}
 	if req.Description != "" {
 		product.Description = req.Description
+		product.MiniDescription = stripHTML(req.Description)
 	}
 	if req.Category != "" {
 		product.Category = req.Category
