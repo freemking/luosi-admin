@@ -68,5 +68,23 @@ func SetupRoutes(r *gin.Engine) {
 		protected.POST("/users", controllers.CreateUser)
 		protected.PUT("/users/:id", controllers.UpdateUser)
 		protected.DELETE("/users/:id", controllers.DeleteUser)
+
+		// 广告位管理
+		protected.GET("/ad-positions", controllers.GetAdPositions)
+		protected.GET("/ad-positions/count", controllers.GetAdPositionCount)
+		protected.GET("/ad-positions/all", controllers.GetAllAdPositions)
+		protected.GET("/ad-positions/:id", controllers.GetAdPosition)
+		protected.POST("/ad-positions", controllers.CreateAdPosition)
+		protected.PUT("/ad-positions/:id", controllers.UpdateAdPosition)
+		protected.DELETE("/ad-positions/:id", controllers.DeleteAdPosition)
+
+		// 广告管理
+		protected.GET("/ads", controllers.GetAds)
+		protected.GET("/ads/count", controllers.GetAdCount)
+		protected.GET("/ads/:id", controllers.GetAd)
+		protected.POST("/ads", controllers.CreateAd)
+		protected.PUT("/ads/:id", controllers.UpdateAd)
+		protected.DELETE("/ads/:id", controllers.DeleteAd)
+		protected.GET("/ads/position/:code", controllers.GetAdsByPosition)
 	}
 }

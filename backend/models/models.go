@@ -102,3 +102,36 @@ type News struct {
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 }
+
+// AdPosition 广告位模型
+type AdPosition struct {
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	Code        string         `json:"code" gorm:"size:50;unique;not null"`
+	Name        string         `json:"name" gorm:"size:100;not null"`
+	Description string         `json:"description" gorm:"size:255"`
+	Width       int            `json:"width"`
+	Height      int            `json:"height"`
+	Status      int            `json:"status" gorm:"default:1"` // 1: 启用, 0: 禁用
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+	Ads         []Ad           `json:"ads" gorm:"foreignKey:PositionID"`
+}
+
+// Ad 广告模型
+type Ad struct {
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	PositionID  uint           `json:"position_id" gorm:"not null"`
+	Title       string         `json:"title" gorm:"size:255"`
+	Subtitle    string         `json:"subtitle" gorm:"size:255"`
+	ImageURL    string         `json:"image_url" gorm:"size:255;not null"`
+	LinkURL     string         `json:"link_url" gorm:"size:255"`
+	Order       int            `json:"order" gorm:"default:0"`
+	Status      int            `json:"status" gorm:"default:1"` // 1: 启用, 0: 禁用
+	StartTime   *time.Time     `json:"start_time"`
+	EndTime     *time.Time     `json:"end_time"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+	AdPosition  AdPosition     `json:"ad_position" gorm:"foreignKey:PositionID"`
+}

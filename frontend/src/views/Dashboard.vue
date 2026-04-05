@@ -35,14 +35,37 @@
           <div class="stat-number">{{ stats.news }}</div>
         </a-card>
       </a-col>
+      <a-col :xs="24" :sm="12" :md="8" :lg="6">
+        <a-card :bordered="true" class="stat-card">
+          <template #title>
+            <a-space>
+              <LayoutOutlined style="color: #722ed1; font-size: 24px;" />
+              <span>广告位总数</span>
+            </a-space>
+          </template>
+          <div class="stat-number">{{ stats.adPositions }}</div>
+        </a-card>
+      </a-col>
+      <a-col :xs="24" :sm="12" :md="8" :lg="6">
+        <a-card :bordered="true" class="stat-card">
+          <template #title>
+            <a-space>
+              <PictureOutlined style="color: #eb2f96; font-size: 24px;" />
+              <span>广告总数</span>
+            </a-space>
+          </template>
+          <div class="stat-number">{{ stats.ads }}</div>
+        </a-card>
+      </a-col>
     </a-row>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { AppstoreOutlined, MessageOutlined, FileTextOutlined } from '@ant-design/icons-vue'
+import { AppstoreOutlined, MessageOutlined, FileTextOutlined, LayoutOutlined, PictureOutlined } from '@ant-design/icons-vue'
 import { useProductStore, useFeedbackStore, useNewsStore } from '../stores/auth'
+import config from '../config'
 
 const productStore = useProductStore()
 const feedbackStore = useFeedbackStore()
@@ -51,19 +74,57 @@ const newsStore = useNewsStore()
 const stats = ref({
   products: 0,
   feedbacks: 0,
-  news: 0
+  news: 0,
+  adPositions: 0,
+  ads: 0
 })
+
+const fetchAdPositionCount = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${config.API_BASE_URL}/ad-positions/count`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    const data = await response.json()
+    return data.count || 0
+  } catch (err) {
+    console.error('Failed to fetch ad position count:', err)
+    return 0
+  }
+}
+
+const fetchAdCount = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${config.API_BASE_URL}/ads/count`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    const data = await response.json()
+    return data.count || 0
+  } catch (err) {
+    console.error('Failed to fetch ad count:', err)
+    return 0
+  }
+}
 
 const fetchStats = async () => {
   try {
-    const [productCount, feedbackCount, newsCount] = await Promise.all([
+    const [productCount, feedbackCount, newsCount, adPositionCount, adCount] = await Promise.all([
       productStore.getProductCount(),
       feedbackStore.getFeedbackCount(),
-      newsStore.getNewsCount()
+      newsStore.getNewsCount(),
+      fetchAdPositionCount(),
+      fetchAdCount()
     ])
     stats.value.products = productCount
     stats.value.feedbacks = feedbackCount
     stats.value.news = newsCount
+    stats.value.adPositions = adPositionCount
+    stats.value.ads = adCount
   } catch (err) {
     console.error('Failed to fetch stats:', err)
   }
@@ -174,6 +235,20 @@ onMounted(() => {
 
 :deep(.anticon-file-text) {
   background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:deep(.anticon-layout) {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:deep(.anticon-picture) {
+  background: linear-gradient(135deg, #eb2f96 0%, #f759ab 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

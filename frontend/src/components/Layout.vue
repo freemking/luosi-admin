@@ -49,6 +49,18 @@
             <span>新闻管理</span>
           </router-link>
         </a-menu-item>
+        <a-menu-item key="ad-positions">
+          <router-link to="/ad-positions">
+            <template #icon><LayoutOutlined /></template>
+            <span>广告位管理</span>
+          </router-link>
+        </a-menu-item>
+        <a-menu-item key="ads">
+          <router-link to="/ads">
+            <template #icon><PictureOutlined /></template>
+            <span>广告管理</span>
+          </router-link>
+        </a-menu-item>
       </a-menu>
     </a-layout-sider>
     <a-layout>
@@ -93,6 +105,8 @@ import {
   AppstoreOutlined, 
   MessageOutlined,
   FileTextOutlined,
+  PictureOutlined,
+  LayoutOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined
 } from '@ant-design/icons-vue'
