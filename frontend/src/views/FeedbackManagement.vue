@@ -21,9 +21,14 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'action'">
-              <a-button size="small" type="primary" @click="viewFeedback(record)">
-                查看详情
-              </a-button>
+              <a-space size="small">
+                <a-button size="small" type="primary" @click="viewFeedback(record)">
+                  查看
+                </a-button>
+                <a-button size="small" danger @click="showDeleteModal(record)">
+                  删除
+                </a-button>
+              </a-space>
             </template>
           </template>
         </a-table>
@@ -54,6 +59,22 @@
         </a-descriptions>
       </div>
     </a-modal>
+
+    <a-modal
+      v-model:open="deleteModalVisible"
+      title="确认删除"
+      @ok="handleDelete"
+      :confirmLoading="deleting"
+      ok-text="确认"
+      cancel-text="取消"
+    >
+      <a-alert
+        message="警告"
+        description="确定要删除此留言吗？删除后无法恢复。"
+        type="warning"
+        show-icon
+      />
+    </a-modal>
   </div>
 </template>
 
@@ -61,13 +82,17 @@
 import { ref, onMounted } from 'vue'
 import { useFeedbackStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
+import config from '../config'
 
 const feedbackStore = useFeedbackStore()
 
 const feedbacks = ref([])
 const loading = ref(true)
 const modalVisible = ref(false)
+const deleteModalVisible = ref(false)
 const selectedFeedback = ref(null)
+const currentId = ref(null)
+const deleting = ref(false)
 
 const columns = [
   {
@@ -134,6 +159,36 @@ const viewFeedback = async (feedback) => {
 const closeModal = () => {
   modalVisible.value = false
   selectedFeedback.value = null
+}
+
+const showDeleteModal = (record) => {
+  currentId.value = record.id
+  deleteModalVisible.value = true
+}
+
+const handleDelete = async () => {
+  deleting.value = true
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${config.API_BASE_URL}/feedbacks/${currentId.value}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    const data = await response.json()
+    if (response.ok) {
+      message.success(data.message || '删除成功')
+      deleteModalVisible.value = false
+      fetchFeedbacks()
+    } else {
+      message.error(data.error || '删除失败')
+    }
+  } catch (error) {
+    message.error('网络错误')
+  } finally {
+    deleting.value = false
+  }
 }
 
 onMounted(() => {
