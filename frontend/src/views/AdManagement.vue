@@ -86,7 +86,7 @@
           <a-input v-model:value="adForm.title" placeholder="广告标题（可选）" />
         </a-form-item>
         <a-form-item label="副标题" name="subtitle">
-          <a-input v-model:value="adForm.subtitle" placeholder="广告副标题（可选）" />
+          <a-textarea v-model:value="adForm.subtitle" placeholder="广告副标题（可选）" :rows="3" />
         </a-form-item>
         <a-form-item label="图片" name="image_url" :rules="[{ required: true, message: '请上传图片' }]">
           <a-upload
