@@ -37,6 +37,12 @@
             <span>产品管理</span>
           </router-link>
         </a-menu-item>
+        <a-menu-item key="categories">
+          <router-link to="/categories">
+            <template #icon><FolderOutlined /></template>
+            <span>分类管理</span>
+          </router-link>
+        </a-menu-item>
         <a-menu-item key="feedbacks">
           <router-link to="/feedbacks">
             <template #icon><MessageOutlined /></template>
@@ -107,6 +113,7 @@ import {
   FileTextOutlined,
   PictureOutlined,
   LayoutOutlined,
+  FolderOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined
 } from '@ant-design/icons-vue'

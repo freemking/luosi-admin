@@ -86,5 +86,14 @@ func SetupRoutes(r *gin.Engine) {
 		protected.PUT("/ads/:id", controllers.UpdateAd)
 		protected.DELETE("/ads/:id", controllers.DeleteAd)
 		protected.GET("/ads/position/:code", controllers.GetAdsByPosition)
+
+		// 分类管理
+		protected.GET("/categories", controllers.GetCategories)
+		protected.GET("/categories/count", controllers.GetCategoryCount)
+		protected.GET("/categories/all", controllers.GetAllCategories)
+		protected.GET("/categories/:id", controllers.GetCategory)
+		protected.POST("/categories", controllers.CreateCategory)
+		protected.PUT("/categories/:id", controllers.UpdateCategory)
+		protected.DELETE("/categories/:id", controllers.DeleteCategory)
 	}
 }

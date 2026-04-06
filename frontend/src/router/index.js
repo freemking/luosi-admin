@@ -9,6 +9,7 @@ import FeedbackManagement from '../views/FeedbackManagement.vue'
 import NewsManagement from '../views/NewsManagement.vue'
 import AdPositionManagement from '../views/AdPositionManagement.vue'
 import AdManagement from '../views/AdManagement.vue'
+import CategoryManagement from '../views/CategoryManagement.vue'
 
 const routes = [
   {
@@ -68,6 +69,11 @@ const routes = [
         path: 'ads',
         name: 'AdManagement',
         component: AdManagement
+      },
+      {
+        path: 'categories',
+        name: 'CategoryManagement',
+        component: CategoryManagement
       }
     ]
   }

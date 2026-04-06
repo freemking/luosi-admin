@@ -135,3 +135,18 @@ type Ad struct {
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 	AdPosition  AdPosition     `json:"ad_position" gorm:"foreignKey:PositionID"`
 }
+
+// Category 产品分类模型
+type Category struct {
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	Name        string         `json:"name" gorm:"size:100;not null;uniqueIndex"`
+	Slug        string         `json:"slug" gorm:"size:100;not null;uniqueIndex"`
+	Description string         `json:"description" gorm:"size:500"`
+	Icon        string         `json:"icon" gorm:"size:255"`
+	ImageURL    string         `json:"image_url" gorm:"size:255"`
+	Order       int            `json:"order" gorm:"default:0"`
+	Status      int            `json:"status" gorm:"default:1"` // 1: 启用, 0: 禁用
+	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+}
