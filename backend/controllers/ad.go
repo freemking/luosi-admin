@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"admin-backend/models"
+	"admin-backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -314,7 +315,7 @@ func convertAdToResponse(ad models.Ad) AdResponse {
 		PositionID: ad.PositionID,
 		Title:      ad.Title,
 		Subtitle:   ad.Subtitle,
-		ImageURL:   ad.ImageURL,
+		ImageURL:   utils.GetFullURL(ad.ImageURL),
 		LinkURL:    ad.LinkURL,
 		Order:      ad.Order,
 		Status:     ad.Status,
