@@ -249,9 +249,9 @@ const columns = [
     width: 100
   },
   {
-    title: '创建时间',
-    dataIndex: 'created_at',
-    key: 'created_at',
+    title: '修改时间',
+    dataIndex: 'updated_at',
+    key: 'updated_at',
     width: 180
   },
   {

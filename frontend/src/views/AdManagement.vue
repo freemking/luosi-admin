@@ -219,7 +219,13 @@ const columns = [
     title: '广告位',
     dataIndex: 'position_name',
     key: 'position_name',
-    width: 150
+    width: 180,
+    customRender: ({ text, record }) => {
+      if (record.position_width && record.position_height) {
+        return `${record.position_name} (${record.position_width}×${record.position_height})`
+      }
+      return record.position_name
+    }
   },
   {
     title: '图片',
@@ -245,21 +251,9 @@ const columns = [
     width: 80
   },
   {
-    title: '开始时间',
-    dataIndex: 'start_time',
-    key: 'start_time',
-    width: 170
-  },
-  {
-    title: '结束时间',
-    dataIndex: 'end_time',
-    key: 'end_time',
-    width: 170
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'created_at',
-    key: 'created_at',
+    title: '修改时间',
+    dataIndex: 'updated_at',
+    key: 'updated_at',
     width: 170
   },
   {

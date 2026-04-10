@@ -40,19 +40,21 @@ type UpdateAdRequest struct {
 
 // AdResponse 广告响应结构
 type AdResponse struct {
-	ID           uint               `json:"id"`
-	PositionID   uint               `json:"position_id"`
-	PositionName string             `json:"position_name"`
-	Title        string             `json:"title"`
-	Subtitle     string             `json:"subtitle"`
-	ImageURL     string             `json:"image_url"`
-	LinkURL      string             `json:"link_url"`
-	Order        int                `json:"order"`
-	Status       int                `json:"status"`
-	StartTime    *string            `json:"start_time"`
-	EndTime      *string            `json:"end_time"`
-	CreatedAt    string             `json:"created_at"`
-	UpdatedAt    string             `json:"updated_at"`
+	ID             uint    `json:"id"`
+	PositionID     uint    `json:"position_id"`
+	PositionName   string  `json:"position_name"`
+	PositionWidth  int     `json:"position_width"`
+	PositionHeight int     `json:"position_height"`
+	Title          string  `json:"title"`
+	Subtitle       string  `json:"subtitle"`
+	ImageURL       string  `json:"image_url"`
+	LinkURL        string  `json:"link_url"`
+	Order          int     `json:"order"`
+	Status         int     `json:"status"`
+	StartTime      *string `json:"start_time"`
+	EndTime        *string `json:"end_time"`
+	CreatedAt      string  `json:"created_at"`
+	UpdatedAt      string  `json:"updated_at"`
 }
 
 // GetAds 获取广告列表
@@ -334,6 +336,8 @@ func convertAdToResponse(ad models.Ad) AdResponse {
 
 	if ad.AdPosition.ID != 0 {
 		response.PositionName = ad.AdPosition.Name
+		response.PositionWidth = ad.AdPosition.Width
+		response.PositionHeight = ad.AdPosition.Height
 	}
 
 	return response

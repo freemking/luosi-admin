@@ -107,10 +107,10 @@ const columns = [
     width: 120
   },
   {
-    title: '材质',
-    dataIndex: 'material',
-    key: 'material',
-    width: 120
+    title: '修改时间',
+    dataIndex: 'updated_at',
+    key: 'updated_at',
+    width: 170
   },
   {
     title: '操作',

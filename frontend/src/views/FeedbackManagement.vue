@@ -55,7 +55,7 @@
           <a-descriptions-item label="留言">
             <pre style="margin: 0; white-space: pre-wrap; word-break: break-word; font-family: inherit;">{{ selectedFeedback.message }}</pre>
           </a-descriptions-item>
-          <a-descriptions-item label="创建时间">{{ selectedFeedback.created_at }}</a-descriptions-item>
+          <a-descriptions-item label="修改时间">{{ selectedFeedback.created_at }}</a-descriptions-item>
         </a-descriptions>
       </div>
     </a-modal>
@@ -121,9 +121,9 @@ const columns = [
     width: 120
   },
   {
-    title: '创建时间',
-    dataIndex: 'created_at',
-    key: 'created_at',
+    title: '修改时间',
+    dataIndex: 'updated_at',
+    key: 'updated_at',
     width: 180
   },
   {
