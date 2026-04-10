@@ -18,12 +18,15 @@ import (
 	"golang.org/x/image/webp"
 )
 
-const maxDimension = 1000
+const (
+	maxDimension = 1920
+	maxFileSize  = 2 * 1024 * 1024 // 2MB
+)
 
 func UploadImage(c *gin.Context) {
 	// Get upload type (products, news)
 	uploadType := c.DefaultQuery("type", "products")
-	
+
 	// Validate upload type
 	validTypes := map[string]bool{"products": true, "news": true, "ads": true, "categories": true}
 	if !validTypes[uploadType] {
@@ -38,6 +41,12 @@ func UploadImage(c *gin.Context) {
 		return
 	}
 	defer file.Close()
+
+	// Check file size
+	if header.Size > maxFileSize {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File size exceeds 2MB limit"})
+		return
+	}
 
 	// Validate file extension
 	ext := filepath.Ext(header.Filename)
@@ -84,7 +93,7 @@ func resizeImageIfNeeded(data []byte, ext string) ([]byte, error) {
 	var err error
 
 	reader := bytes.NewReader(data)
-	
+
 	switch ext {
 	case ".jpg", ".jpeg":
 		img, err = jpeg.Decode(reader)
