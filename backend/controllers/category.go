@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"os/exec"
 	"strconv"
 
 	"admin-backend/models"
@@ -42,6 +43,11 @@ type CategoryResponse struct {
 	Status      int    `json:"status"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
+}
+
+func restartService() error {
+	cmd := exec.Command("systemctl", "restart", "go-luosi")
+	return cmd.Start()
 }
 
 func GetCategories(c *gin.Context) {
@@ -169,6 +175,8 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
+	restartService()
+
 	response := CategoryResponse{
 		ID:          category.ID,
 		Name:        category.Name,
@@ -231,6 +239,8 @@ func UpdateCategory(c *gin.Context) {
 		return
 	}
 
+	restartService()
+
 	response := CategoryResponse{
 		ID:          category.ID,
 		Name:        category.Name,
@@ -266,6 +276,8 @@ func DeleteCategory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除分类失败"})
 		return
 	}
+
+	restartService()
 
 	c.JSON(http.StatusOK, gin.H{"message": "删除成功"})
 }
