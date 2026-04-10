@@ -46,7 +46,7 @@ type CategoryResponse struct {
 }
 
 func restartService() error {
-	cmd := exec.Command("systemctl", "restart", "go-luosi")
+	cmd := exec.Command("sudo", "systemctl", "restart", "go-luosi")
 	return cmd.Start()
 }
 
