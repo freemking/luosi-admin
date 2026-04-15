@@ -6,6 +6,20 @@ const apiClient = axios.create({
   baseURL: config.API_BASE_URL
 })
 
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue = []
+}
+
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -24,13 +38,24 @@ apiClient.interceptors.response.use(
       const isLoginPage = window.location.pathname === '/login'
       
       if (!isLoginRequest && !isLoginPage) {
-        // Clear auth data
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        
-        // Show message and redirect to login
-        alert('Session expired. Please login again.')
-        window.location.href = '/login'
+        if (!isRefreshing) {
+          isRefreshing = true
+          // Clear auth data
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          
+          // Show message and redirect to login
+          alert('Session expired. Please login again.')
+          window.location.href = '/login'
+          
+          processQueue(error)
+        } else {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject })
+          }).catch(() => {
+            return Promise.reject(error)
+          })
+        }
       }
     }
     return Promise.reject(error)

@@ -46,6 +46,24 @@
         >
           <a-input v-model:value="productForm.material" placeholder="请输入材质" />
         </a-form-item>
+        <a-form-item
+          label="SEO 标题"
+          name="seoTitle"
+        >
+          <a-input v-model:value="productForm.seoTitle" placeholder="请输入SEO标题" />
+        </a-form-item>
+        <a-form-item
+          label="SEO 关键词"
+          name="seoKeywords"
+        >
+          <a-textarea v-model:value="productForm.seoKeywords" placeholder="请输入SEO关键词" :rows="3" />
+        </a-form-item>
+        <a-form-item
+          label="SEO 描述"
+          name="seoDescription"
+        >
+          <a-textarea v-model:value="productForm.seoDescription" placeholder="请输入SEO描述" :rows="3" />
+        </a-form-item>
         <a-form-item label="产品图片">
           <a-upload
             v-model:file-list="fileList"
@@ -114,6 +132,9 @@ const productForm = ref({
   category: '',
   standard: '',
   material: '',
+  seoTitle: '',
+  seoKeywords: '',
+  seoDescription: '',
   images: []
 })
 
@@ -152,6 +173,9 @@ const fetchProduct = async () => {
       productForm.value.standard = product.standard || ''
       productForm.value.material = product.material || ''
       productForm.value.description = product.description || ''
+      productForm.value.seoTitle = product.seo_title || ''
+      productForm.value.seoKeywords = product.seo_keywords || ''
+      productForm.value.seoDescription = product.seo_description || ''
       productForm.value.images = product.images ? [...product.images] : []
       
       if (product.images && product.images.length > 0) {

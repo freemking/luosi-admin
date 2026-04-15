@@ -42,12 +42,15 @@ func stripHTML(html string) string {
 
 // ProductRequest 产品请求结构
 type ProductRequest struct {
-	Name        string                `json:"name" binding:"required"`
-	Description string                `json:"description"`
-	Category    string                `json:"category" binding:"required"`
-	Standard    string                `json:"standard"`
-	Material    string                `json:"material"`
-	Images      []ProductImageRequest `json:"images"`
+	Name           string                `json:"name" binding:"required"`
+	Description    string                `json:"description"`
+	Category       string                `json:"category" binding:"required"`
+	Standard       string                `json:"standard"`
+	Material       string                `json:"material"`
+	SEOTitle       string                `json:"seoTitle"`
+	SEOKeywords    string                `json:"seoKeywords"`
+	SEODescription string                `json:"seoDescription"`
+	Images         []ProductImageRequest `json:"images"`
 }
 
 // ProductImageRequest 产品图片请求结构
@@ -58,25 +61,31 @@ type ProductImageRequest struct {
 
 // UpdateProductRequest 更新产品请求结构
 type UpdateProductRequest struct {
-	Name        string                `json:"name"`
-	Description string                `json:"description"`
-	Category    string                `json:"category"`
-	Standard    string                `json:"standard"`
-	Material    string                `json:"material"`
-	Images      []ProductImageRequest `json:"images"`
+	Name           string                `json:"name"`
+	Description    string                `json:"description"`
+	Category       string                `json:"category"`
+	Standard       string                `json:"standard"`
+	Material       string                `json:"material"`
+	SEOTitle       string                `json:"seoTitle"`
+	SEOKeywords    string                `json:"seoKeywords"`
+	SEODescription string                `json:"seoDescription"`
+	Images         []ProductImageRequest `json:"images"`
 }
 
 // ProductResponse 产品响应结构
 type ProductResponse struct {
-	ID          uint                   `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Category    string                 `json:"category"`
-	Standard    string                 `json:"standard"`
-	Material    string                 `json:"material"`
-	CreatedAt   string                 `json:"created_at"`
-	UpdatedAt   string                 `json:"updated_at"`
-	Images      []ProductImageResponse `json:"images"`
+	ID             uint                   `json:"id"`
+	Name           string                 `json:"name"`
+	Description    string                 `json:"description"`
+	Category       string                 `json:"category"`
+	Standard       string                 `json:"standard"`
+	Material       string                 `json:"material"`
+	SEOTitle       string                 `json:"seo_title"`
+	SEOKeywords    string                 `json:"seo_keywords"`
+	SEODescription string                 `json:"seo_description"`
+	CreatedAt      string                 `json:"created_at"`
+	UpdatedAt      string                 `json:"updated_at"`
+	Images         []ProductImageResponse `json:"images"`
 }
 
 // ProductImageResponse 产品图片响应结构
@@ -90,14 +99,17 @@ type ProductImageResponse struct {
 // convertProductToResponse converts a product model to response with full URLs
 func convertProductToResponse(product models.Product) ProductResponse {
 	response := ProductResponse{
-		ID:          product.ID,
-		Name:        product.Name,
-		Description: product.Description,
-		Category:    product.Category,
-		Standard:    product.Standard,
-		Material:    product.Material,
-		CreatedAt:   product.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:   product.UpdatedAt.Format("2006-01-02 15:04:05"),
+		ID:             product.ID,
+		Name:           product.Name,
+		Description:    product.Description,
+		Category:       product.Category,
+		Standard:       product.Standard,
+		Material:       product.Material,
+		SEOTitle:       product.SEOTitle,
+		SEOKeywords:    product.SEOKeywords,
+		SEODescription: product.SEODescription,
+		CreatedAt:      product.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:      product.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
 
 	for _, img := range product.Images {
@@ -185,7 +197,10 @@ func CreateProduct(c *gin.Context) {
 
 	// 创建产品
 	product := models.Product{
-		Name:            req.Name,
+		Name:           req.Name,
+		SEOTitle:       req.SEOTitle,
+		SEOKeywords:    req.SEOKeywords,
+		SEODescription: req.SEODescription,
 		MiniDescription: stripHTML(req.Description),
 		Description:     req.Description,
 		Category:        req.Category,
@@ -242,6 +257,9 @@ func UpdateProduct(c *gin.Context) {
 	if req.Name != "" {
 		product.Name = req.Name
 	}
+	product.SEOTitle = req.SEOTitle
+	product.SEOKeywords = req.SEOKeywords
+	product.SEODescription = req.SEODescription
 	if req.Description != "" {
 		product.Description = req.Description
 		product.MiniDescription = stripHTML(req.Description)

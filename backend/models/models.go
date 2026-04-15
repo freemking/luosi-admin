@@ -55,6 +55,9 @@ type User struct {
 type Product struct {
 	ID              uint           `json:"id" gorm:"primaryKey"`
 	Name            string         `json:"name" gorm:"size:255;not null"`
+	SEOTitle        string         `json:"seo_title" gorm:"size:255;default:''"`
+	SEOKeywords     string         `json:"seo_keywords" gorm:"type:text;default:''"`
+	SEODescription  string         `json:"seo_description" gorm:"type:text;default:''"`
 	MiniDescription string         `json:"mini_description" gorm:"type:text"` // Plain text version of description
 	Description     string         `json:"description" gorm:"type:text"`
 	Category        string         `json:"category" gorm:"size:100;not null"`
