@@ -81,7 +81,7 @@ func GetNewsList(c *gin.Context) {
 	models.DB.Model(&models.News{}).Count(&total)
 
 	// 分页查询
-	result := models.DB.Order("created_at desc").Limit(pageSize).Offset(offset).Find(&newsList)
+	result := models.DB.Order("publish_date desc").Limit(pageSize).Offset(offset).Find(&newsList)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get news list"})
 		return
