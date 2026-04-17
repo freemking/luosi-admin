@@ -28,9 +28,9 @@ func UploadImage(c *gin.Context) {
 	uploadType := c.DefaultQuery("type", "products")
 
 	// Validate upload type
-	validTypes := map[string]bool{"products": true, "news": true, "ads": true, "categories": true}
+	validTypes := map[string]bool{"products": true, "news": true, "ads": true, "categories": true, "ckeditor": true}
 	if !validTypes[uploadType] {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid upload type. Use 'products', 'news', 'ads' or 'categories'"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid upload type. Use 'products', 'news', 'ads', 'categories' or 'ckeditor'"})
 		return
 	}
 

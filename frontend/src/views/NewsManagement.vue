@@ -166,6 +166,53 @@ import dayjs from 'dayjs'
 import { Ckeditor } from '@ckeditor/ckeditor5-vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
+// CKEditor 图片上传适配器
+class UploadAdapter {
+  constructor(loader) {
+    this.loader = loader
+  }
+
+  upload() {
+    return this.loader.file.then(file => {
+      return new Promise((resolve, reject) => {
+        const formData = new FormData()
+        formData.append('image', file)
+        
+        fetch(config.getUploadUrl('news'), {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        })
+        .then(response => response.json())
+         .then(data => {
+           if (data.full_url) {
+             resolve({ default: data.full_url })
+           } else if (data.url) {
+             resolve({ default: data.url })
+           } else {
+             reject(data.error || '上传失败')
+           }
+         })
+        .catch(error => {
+          reject(error.message || '上传失败')
+        })
+      })
+    })
+  }
+
+  abort() {
+  }
+}
+
+// 设置编辑器插件
+function MyCKEditorPlugins(editor) {
+  editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+    return new UploadAdapter(loader)
+  }
+}
+
 const newsStore = useNewsStore()
 const loading = ref(true)
 const modalVisible = ref(false)
@@ -179,13 +226,26 @@ const currentId = ref(null)
 const editorKey = ref(0)
 const editor = ClassicEditor
 
+// 添加自定义插件
+ClassicEditor.builtinPlugins.push(MyCKEditorPlugins)
+
 const editorConfig = {
   toolbar: [
     'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
-    'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'undo', 'redo'
+    'outdent', 'indent', '|', 'blockQuote', 'insertTable', 'imageUpload', 'undo', 'redo'
   ],
   table: {
     contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+  },
+  image: {
+    toolbar: [
+      'imageTextAlternative',
+      'toggleImageCaption',
+      '|',
+      'imageStyle:inline',
+      'imageStyle:block',
+      'imageStyle:side'
+    ]
   }
 }
 
