@@ -46,6 +46,8 @@ type ProductRequest struct {
 	Description    string                `json:"description"`
 	Category       string                `json:"category" binding:"required"`
 	Standard       string                `json:"standard"`
+	Finish         string                `json:"finish"`
+	Brand          string                `json:"brand"`
 	Material       string                `json:"material"`
 	SEOTitle       string                `json:"seoTitle"`
 	SEOKeywords    string                `json:"seoKeywords"`
@@ -65,6 +67,8 @@ type UpdateProductRequest struct {
 	Description    string                `json:"description"`
 	Category       string                `json:"category"`
 	Standard       string                `json:"standard"`
+	Finish         string                `json:"finish"`
+	Brand          string                `json:"brand"`
 	Material       string                `json:"material"`
 	SEOTitle       string                `json:"seoTitle"`
 	SEOKeywords    string                `json:"seoKeywords"`
@@ -79,6 +83,8 @@ type ProductResponse struct {
 	Description    string                 `json:"description"`
 	Category       string                 `json:"category"`
 	Standard       string                 `json:"standard"`
+	Finish         string                 `json:"finish"`
+	Brand          string                 `json:"brand"`
 	Material       string                 `json:"material"`
 	SEOTitle       string                 `json:"seo_title"`
 	SEOKeywords    string                 `json:"seo_keywords"`
@@ -104,6 +110,8 @@ func convertProductToResponse(product models.Product) ProductResponse {
 		Description:    product.Description,
 		Category:       product.Category,
 		Standard:       product.Standard,
+		Finish:         product.Finish,
+		Brand:          product.Brand,
 		Material:       product.Material,
 		SEOTitle:       product.SEOTitle,
 		SEOKeywords:    product.SEOKeywords,
@@ -197,14 +205,16 @@ func CreateProduct(c *gin.Context) {
 
 	// 创建产品
 	product := models.Product{
-		Name:            req.Name,
-		SEOTitle:        req.SEOTitle,
-		SEOKeywords:     req.SEOKeywords,
-		SEODescription:  req.SEODescription,
+		Name:           req.Name,
+		SEOTitle:       req.SEOTitle,
+		SEOKeywords:    req.SEOKeywords,
+		SEODescription: req.SEODescription,
 		MiniDescription: stripHTML(req.Description),
 		Description:     req.Description,
 		Category:        req.Category,
 		Standard:        req.Standard,
+		Finish:          req.Finish,
+		Brand:           req.Brand,
 		Material:        req.Material,
 	}
 
@@ -268,6 +278,8 @@ func UpdateProduct(c *gin.Context) {
 		product.Category = req.Category
 	}
 	product.Standard = req.Standard
+	product.Finish = req.Finish
+	product.Brand = req.Brand
 	product.Material = req.Material
 
 	result = models.DB.Save(&product)

@@ -46,6 +46,18 @@
           <a-input v-model:value="productForm.standard" placeholder="请输入规格" />
         </a-form-item>
         <a-form-item
+          label="表面处理"
+          name="finish"
+        >
+          <a-input v-model:value="productForm.finish" placeholder="请输入表面处理" />
+        </a-form-item>
+        <a-form-item
+          label="品牌"
+          name="brand"
+        >
+          <a-input v-model:value="productForm.brand" placeholder="请输入品牌" />
+        </a-form-item>
+        <a-form-item
           label="材质"
           name="material"
         >
@@ -184,6 +196,8 @@ const productForm = ref({
   description: '',
   category: '',
   standard: '',
+  finish: '',
+  brand: '',
   material: '',
   seoTitle: '',
   seoKeywords: '',
@@ -235,6 +249,8 @@ const fetchProduct = async () => {
       productForm.value.name = product.name || ''
       productForm.value.category = product.category || ''
       productForm.value.standard = product.standard || ''
+      productForm.value.finish = product.finish || ''
+      productForm.value.brand = product.brand || ''
       productForm.value.material = product.material || ''
       productForm.value.description = product.description || ''
       productForm.value.seoTitle = product.seo_title || ''
