@@ -60,21 +60,22 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { useProductStore } from '../stores/auth'
 import { message } from 'ant-design-vue'
 
 const router = useRouter()
+const route = useRoute()
 const productStore = useProductStore()
 const loading = ref(true)
 const deleteModalVisible = ref(false)
 const deleting = ref(false)
 const currentId = ref(null)
 
-// 分页相关数据
-const currentPage = ref(1)
-const pageSize = ref(10)
+// 从URL查询参数中读取分页信息
+const currentPage = ref(parseInt(route.query.page) || 1)
+const pageSize = ref(parseInt(route.query.pageSize) || 10)
 const total = ref(0)
 
 const productForm = ref({
@@ -165,6 +166,13 @@ const handleDelete = async () => {
 const handlePaginationChange = (current, size) => {
   currentPage.value = current
   pageSize.value = size
+  // 更新URL查询参数
+  router.replace({
+    query: {
+      page: current,
+      pageSize: size
+    }
+  })
   fetchProducts()
 }
 

@@ -267,12 +267,8 @@ func UpdateProduct(c *gin.Context) {
 	if req.Category != "" {
 		product.Category = req.Category
 	}
-	if req.Standard != "" {
-		product.Standard = req.Standard
-	}
-	if req.Material != "" {
-		product.Material = req.Material
-	}
+	product.Standard = req.Standard
+	product.Material = req.Material
 
 	result = models.DB.Save(&product)
 	if result.Error != nil {
