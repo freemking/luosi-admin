@@ -150,7 +150,7 @@ func GetProducts(c *gin.Context) {
 	models.DB.Model(&models.Product{}).Count(&total)
 
 	// 分页查询
-	result := models.DB.Preload("Images").Limit(pageSize).Offset(offset).Find(&products)
+	result := models.DB.Preload("Images").Order("id ASC").Limit(pageSize).Offset(offset).Find(&products)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get products"})
 		return
@@ -197,10 +197,10 @@ func CreateProduct(c *gin.Context) {
 
 	// 创建产品
 	product := models.Product{
-		Name:           req.Name,
-		SEOTitle:       req.SEOTitle,
-		SEOKeywords:    req.SEOKeywords,
-		SEODescription: req.SEODescription,
+		Name:            req.Name,
+		SEOTitle:        req.SEOTitle,
+		SEOKeywords:     req.SEOKeywords,
+		SEODescription:  req.SEODescription,
 		MiniDescription: stripHTML(req.Description),
 		Description:     req.Description,
 		Category:        req.Category,
