@@ -325,7 +325,7 @@ const handleSubmit = async () => {
 }
 
 const goBack = () => {
-  router.push('/products')
+  router.back()
 }
 
 onMounted(() => {
