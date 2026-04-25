@@ -55,6 +55,7 @@ type User struct {
 type Product struct {
 	ID              uint           `json:"id" gorm:"primaryKey"`
 	Name            string         `json:"name" gorm:"size:255;not null"`
+	Slug            string         `json:"slug" gorm:"size:255;not null;uniqueIndex"`
 	SEOTitle        string         `json:"seo_title" gorm:"size:255;default:''"`
 	SEOKeywords     string         `json:"seo_keywords" gorm:"type:text;default:''"`
 	SEODescription  string         `json:"seo_description" gorm:"type:text;default:''"`
@@ -98,6 +99,7 @@ type Feedback struct {
 type News struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
 	Title       string         `json:"title" gorm:"size:255;not null"`
+	Slug        string         `json:"slug" gorm:"size:255;not null;uniqueIndex"`
 	CoverImage  string         `json:"cover_image" gorm:"size:255"`
 	PublishDate NullTime       `json:"publish_date" gorm:"type:date"`
 	Summary     string         `json:"summary" gorm:"size:500"`

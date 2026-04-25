@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"admin-backend/models"
@@ -15,6 +16,7 @@ import (
 // NewsRequest 新闻请求结构
 type NewsRequest struct {
 	Title       string `json:"title"`
+	Slug        string `json:"slug"`
 	CoverImage  string `json:"cover_image"`
 	PublishDate string `json:"publish_date"` // YYYY-MM-DD format
 	Summary     string `json:"summary"`
@@ -26,6 +28,7 @@ type NewsRequest struct {
 type NewsResponse struct {
 	ID          uint   `json:"id"`
 	Title       string `json:"title"`
+	Slug        string `json:"slug"`
 	CoverImage  string `json:"cover_image"`
 	PublishDate string `json:"publish_date"`
 	Summary     string `json:"summary"`
@@ -45,6 +48,7 @@ func convertNewsToResponse(news models.News) NewsResponse {
 	return NewsResponse{
 		ID:          news.ID,
 		Title:       news.Title,
+		Slug:        news.Slug,
 		CoverImage:  utils.GetFullURL(news.CoverImage),
 		PublishDate: publishDate,
 		Summary:     news.Summary,
@@ -135,9 +139,20 @@ func CreateNews(c *gin.Context) {
 		}
 	}
 
-	// 创建新闻
+	var existingNews models.News
+	if err := models.DB.Where("title = ?", req.Title).First(&existingNews).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "新闻标题已存在"})
+		return
+	}
+
+	slug := req.Slug
+	if slug == "" {
+		slug = strings.ToLower(strings.ReplaceAll(strings.TrimSpace(req.Title), " ", "-"))
+	}
+
 	news := models.News{
 		Title:       req.Title,
+		Slug:        slug,
 		CoverImage:  utils.GetRelativePath(req.CoverImage),
 		PublishDate: publishDate,
 		Summary:     req.Summary,
@@ -179,7 +194,21 @@ func UpdateNews(c *gin.Context) {
 
 	// 更新新闻信息
 	if req.Title != "" {
+		var existingNews models.News
+		if err := models.DB.Where("title = ? AND id != ?", req.Title, id).First(&existingNews).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "新闻标题已存在"})
+			return
+		}
+
 		news.Title = req.Title
+		if req.Slug != "" {
+			news.Slug = req.Slug
+		} else {
+			news.Slug = strings.ToLower(strings.ReplaceAll(strings.TrimSpace(req.Title), " ", "-"))
+		}
+	}
+	if req.Slug != "" && req.Title == "" {
+		news.Slug = req.Slug
 	}
 	news.CoverImage = utils.GetRelativePath(req.CoverImage)
 	if req.PublishDate != "" {

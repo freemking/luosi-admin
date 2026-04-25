@@ -18,10 +18,14 @@ var CDNConfigInstance *CDNConfig
 // ServerURL holds the server URL for local uploads
 var ServerURL string
 
+// SiteURL holds the frontend site URL
+var SiteURL string
+
 // InitCDNConfig initializes CDN config from the main config
 func InitCDNConfig(cfg *Config) {
 	CDNConfigInstance = &cfg.CDN
 	ServerURL = cfg.Server.URL
+	SiteURL = cfg.Site.URL
 }
 
 // UploadToQiniu uploads a file to Qiniu cloud storage

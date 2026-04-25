@@ -31,6 +31,7 @@
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'action'">
               <a-space size="small">
+                <a-button size="small" @click="handleView(record)">查看</a-button>
                 <a-button size="small" @click="handleEdit(record)">编辑</a-button>
                 <a-button size="small" danger @click="showDeleteModal(record)">删除</a-button>
               </a-space>
@@ -133,6 +134,10 @@ const fetchProducts = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleView = (record) => {
+  window.open(record.view_url, '_blank')
 }
 
 const showAddModal = () => {

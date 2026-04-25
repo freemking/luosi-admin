@@ -14,11 +14,9 @@ import (
 
 // stripHTML removes HTML tags from a string and returns plain text
 func stripHTML(html string) string {
-	// Remove HTML tags
 	re := regexp.MustCompile(`<[^>]*>`)
 	text := re.ReplaceAllString(html, "")
 
-	// Decode common HTML entities
 	text = strings.ReplaceAll(text, "&nbsp;", " ")
 	text = strings.ReplaceAll(text, "&amp;", "&")
 	text = strings.ReplaceAll(text, "&lt;", "<")
@@ -27,12 +25,10 @@ func stripHTML(html string) string {
 	text = strings.ReplaceAll(text, "&#39;", "'")
 	text = strings.ReplaceAll(text, "&apos;", "'")
 
-	// Remove extra whitespace
 	text = strings.TrimSpace(text)
 	re2 := regexp.MustCompile(`\s+`)
 	text = re2.ReplaceAllString(text, " ")
 
-	// Limit to reasonable length (e.g., 500 characters for mini description)
 	if len(text) > 500 {
 		text = text[:500] + "..."
 	}
@@ -40,9 +36,18 @@ func stripHTML(html string) string {
 	return text
 }
 
+func generateSlug(name string) string {
+	slug := strings.TrimSpace(name)
+	slug = strings.ToLower(slug)
+	re := regexp.MustCompile(`\s+`)
+	slug = re.ReplaceAllString(slug, "-")
+	return slug
+}
+
 // ProductRequest 产品请求结构
 type ProductRequest struct {
 	Name           string                `json:"name" binding:"required"`
+	Slug           string                `json:"slug"`
 	Description    string                `json:"description"`
 	Category       string                `json:"category" binding:"required"`
 	Standard       string                `json:"standard"`
@@ -64,6 +69,7 @@ type ProductImageRequest struct {
 // UpdateProductRequest 更新产品请求结构
 type UpdateProductRequest struct {
 	Name           string                `json:"name"`
+	Slug           string                `json:"slug"`
 	Description    string                `json:"description"`
 	Category       string                `json:"category"`
 	Standard       string                `json:"standard"`
@@ -80,6 +86,7 @@ type UpdateProductRequest struct {
 type ProductResponse struct {
 	ID             uint                   `json:"id"`
 	Name           string                 `json:"name"`
+	Slug           string                 `json:"slug"`
 	Description    string                 `json:"description"`
 	Category       string                 `json:"category"`
 	Standard       string                 `json:"standard"`
@@ -92,6 +99,8 @@ type ProductResponse struct {
 	CreatedAt      string                 `json:"created_at"`
 	UpdatedAt      string                 `json:"updated_at"`
 	Images         []ProductImageResponse `json:"images"`
+	SiteURL        string                 `json:"site_url"`
+	ViewURL        string                 `json:"view_url"`
 }
 
 // ProductImageResponse 产品图片响应结构
@@ -107,6 +116,7 @@ func convertProductToResponse(product models.Product) ProductResponse {
 	response := ProductResponse{
 		ID:             product.ID,
 		Name:           product.Name,
+		Slug:           product.Slug,
 		Description:    product.Description,
 		Category:       product.Category,
 		Standard:       product.Standard,
@@ -118,6 +128,8 @@ func convertProductToResponse(product models.Product) ProductResponse {
 		SEODescription: product.SEODescription,
 		CreatedAt:      product.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:      product.UpdatedAt.Format("2006-01-02 15:04:05"),
+		SiteURL:        utils.SiteURL,
+		ViewURL:        utils.SiteURL + "/product/" + product.Category + "/" + product.Slug,
 	}
 
 	for _, img := range product.Images {
@@ -204,8 +216,20 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	// 创建产品
+	slug := req.Slug
+	if slug == "" {
+		slug = generateSlug(req.Name)
+	}
+
+	var existingProduct models.Product
+	if err := models.DB.Where("name = ?", req.Name).First(&existingProduct).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "产品名称已存在"})
+		return
+	}
+
 	product := models.Product{
 		Name:           req.Name,
+		Slug:           slug,
 		SEOTitle:       req.SEOTitle,
 		SEOKeywords:    req.SEOKeywords,
 		SEODescription: req.SEODescription,
@@ -265,7 +289,21 @@ func UpdateProduct(c *gin.Context) {
 
 	// 更新产品信息
 	if req.Name != "" {
+		var existingProduct models.Product
+		if err := models.DB.Where("name = ? AND id != ?", req.Name, id).First(&existingProduct).Error; err == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "产品名称已存在"})
+			return
+		}
+
 		product.Name = req.Name
+		if req.Slug != "" {
+			product.Slug = req.Slug
+		} else {
+			product.Slug = generateSlug(req.Name)
+		}
+	}
+	if req.Slug != "" && req.Name == "" {
+		product.Slug = req.Slug
 	}
 	product.SEOTitle = req.SEOTitle
 	product.SEOKeywords = req.SEOKeywords
