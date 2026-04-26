@@ -61,7 +61,8 @@ type Product struct {
 	SEODescription  string         `json:"seo_description" gorm:"type:text;default:''"`
 	MiniDescription string         `json:"mini_description" gorm:"type:text"` // Plain text version of description
 	Description     string         `json:"description" gorm:"type:text"`
-	Category        string         `json:"category" gorm:"size:100;not null"`
+	CategoryName    string         `json:"category_name" gorm:"size:100;not null"`
+	CategorySlug    string         `json:"category_slug" gorm:"size:100;not null"`
 	Standard        string         `json:"standard" gorm:"size:100"`
 	Finish          string         `json:"finish" gorm:"size:100"`
 	Brand           string         `json:"brand" gorm:"size:100"`

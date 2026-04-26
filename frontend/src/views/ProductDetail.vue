@@ -29,14 +29,13 @@
         </a-form-item>
         <a-form-item
           label="产品分类"
-          name="category"
+          name="category_name"
           :rules="[{ required: true, message: '请选择产品分类' }]"
         >
-          <a-select v-model:value="productForm.category" placeholder="请选择产品分类">
-            <a-select-option value="Blind Rivet">Blind Rivet</a-select-option>
-            <a-select-option value="Insert Nut">Insert Nut</a-select-option>
-            <a-select-option value="Self Clinching Fasteners">Self Clinching Fasteners</a-select-option>
-            <a-select-option value="Tools">Tools</a-select-option>
+          <a-select v-model:value="productForm.category_name" placeholder="请选择产品分类" @change="handleCategoryChange">
+            <a-select-option v-for="cat in categories" :key="cat.slug" :value="cat.name">
+              {{ cat.name }}
+            </a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item
@@ -191,10 +190,12 @@ const productStore = useProductStore()
 
 const submitting = ref(false)
 const loading = ref(true)
+const categories = ref([])
 const productForm = ref({
   name: '',
   description: '',
-  category: '',
+  category_name: '',
+  category_slug: '',
   standard: '',
   finish: '',
   brand: '',
@@ -242,12 +243,32 @@ const uploadHeaders = computed(() => ({
 
 const isEditing = computed(() => !!route.params.id)
 
+const fetchCategories = async () => {
+  try {
+    const response = await fetch(config.API_BASE_URL + '/categories/all', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    const data = await response.json()
+    categories.value = data.data || []
+  } catch (err) {
+    console.error('获取分类列表失败', err)
+  }
+}
+
+const handleCategoryChange = (value) => {
+  const selected = categories.value.find(cat => cat.name === value)
+  productForm.value.category_slug = selected ? selected.slug : ''
+}
+
 const fetchProduct = async () => {
   if (isEditing.value) {
     try {
       const product = await productStore.getProduct(route.params.id)
       productForm.value.name = product.name || ''
-      productForm.value.category = product.category || ''
+      productForm.value.category_name = product.category_name || ''
+      productForm.value.category_slug = product.category_slug || ''
       productForm.value.standard = product.standard || ''
       productForm.value.finish = product.finish || ''
       productForm.value.brand = product.brand || ''
@@ -345,6 +366,7 @@ const goBack = () => {
 }
 
 onMounted(() => {
+  fetchCategories()
   fetchProduct()
 })
 </script>

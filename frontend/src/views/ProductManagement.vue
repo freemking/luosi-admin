@@ -82,7 +82,8 @@ const total = ref(0)
 const productForm = ref({
   name: '',
   description: '',
-  category: '',
+  category_name: '',
+  category_slug: '',
   standard: '',
   material: '',
   images: []
@@ -104,8 +105,8 @@ const columns = [
   },
   {
     title: '分类',
-    dataIndex: 'category',
-    key: 'category',
+    dataIndex: 'category_name',
+    key: 'category_name',
     width: 120
   },
   {

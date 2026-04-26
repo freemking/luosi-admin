@@ -49,7 +49,8 @@ type ProductRequest struct {
 	Name           string                `json:"name" binding:"required"`
 	Slug           string                `json:"slug"`
 	Description    string                `json:"description"`
-	Category       string                `json:"category" binding:"required"`
+	CategoryName   string                `json:"category_name" binding:"required"`
+	CategorySlug   string                `json:"category_slug" binding:"required"`
 	Standard       string                `json:"standard"`
 	Finish         string                `json:"finish"`
 	Brand          string                `json:"brand"`
@@ -71,7 +72,8 @@ type UpdateProductRequest struct {
 	Name           string                `json:"name"`
 	Slug           string                `json:"slug"`
 	Description    string                `json:"description"`
-	Category       string                `json:"category"`
+	CategoryName   string                `json:"category_name"`
+	CategorySlug   string                `json:"category_slug"`
 	Standard       string                `json:"standard"`
 	Finish         string                `json:"finish"`
 	Brand          string                `json:"brand"`
@@ -88,7 +90,8 @@ type ProductResponse struct {
 	Name           string                 `json:"name"`
 	Slug           string                 `json:"slug"`
 	Description    string                 `json:"description"`
-	Category       string                 `json:"category"`
+	CategoryName   string                 `json:"category_name"`
+	CategorySlug   string                 `json:"category_slug"`
 	Standard       string                 `json:"standard"`
 	Finish         string                 `json:"finish"`
 	Brand          string                 `json:"brand"`
@@ -118,7 +121,8 @@ func convertProductToResponse(product models.Product) ProductResponse {
 		Name:           product.Name,
 		Slug:           product.Slug,
 		Description:    product.Description,
-		Category:       product.Category,
+		CategoryName:   product.CategoryName,
+		CategorySlug:   product.CategorySlug,
 		Standard:       product.Standard,
 		Finish:         product.Finish,
 		Brand:          product.Brand,
@@ -129,7 +133,7 @@ func convertProductToResponse(product models.Product) ProductResponse {
 		CreatedAt:      product.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:      product.UpdatedAt.Format("2006-01-02 15:04:05"),
 		SiteURL:        utils.SiteURL,
-		ViewURL:        utils.SiteURL + "/product/" + product.Category + "/" + product.Slug,
+		ViewURL:        utils.SiteURL + "/product/" + product.CategorySlug + "/" + product.Slug,
 	}
 
 	for _, img := range product.Images {
@@ -228,14 +232,15 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	product := models.Product{
-		Name:           req.Name,
-		Slug:           slug,
-		SEOTitle:       req.SEOTitle,
-		SEOKeywords:    req.SEOKeywords,
-		SEODescription: req.SEODescription,
+		Name:            req.Name,
+		Slug:            slug,
+		SEOTitle:        req.SEOTitle,
+		SEOKeywords:     req.SEOKeywords,
+		SEODescription:  req.SEODescription,
 		MiniDescription: stripHTML(req.Description),
 		Description:     req.Description,
-		Category:        req.Category,
+		CategoryName:    req.CategoryName,
+		CategorySlug:    req.CategorySlug,
 		Standard:        req.Standard,
 		Finish:          req.Finish,
 		Brand:           req.Brand,
@@ -312,8 +317,11 @@ func UpdateProduct(c *gin.Context) {
 		product.Description = req.Description
 		product.MiniDescription = stripHTML(req.Description)
 	}
-	if req.Category != "" {
-		product.Category = req.Category
+	if req.CategoryName != "" {
+		product.CategoryName = req.CategoryName
+	}
+	if req.CategorySlug != "" {
+		product.CategorySlug = req.CategorySlug
 	}
 	product.Standard = req.Standard
 	product.Finish = req.Finish
